@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const checkout = pathname.startsWith("/checkout");
+  const admin = pathname.startsWith("/admin");
   const home = pathname === "/";
   const [scrolled, setScrolled] = React.useState(false);
 
@@ -30,7 +31,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, [home]);
 
-  if (checkout) {
+  if (checkout || admin) {
     return <div className="min-h-screen bg-background">{children}</div>;
   }
 

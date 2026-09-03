@@ -20,17 +20,17 @@ const collectionCopy = [
   {
     title: "New Arrivals",
     href: "/category/new-arrivals",
-    description: "The latest silhouettes from the atelier.",
+    description: "Fresh prints and embroideries for the season.",
   },
   {
     title: "Best Sellers",
     href: "/shop?sort=featured",
-    description: "The pieces clients reorder.",
+    description: "The pieces our customers love most.",
   },
   {
-    title: "The Sale Edit",
+    title: "Sale",
     href: "/category/sale",
-    description: "Previous-season pieces, still considered.",
+    description: "Previous-season pieces at reduced prices.",
   },
 ];
 

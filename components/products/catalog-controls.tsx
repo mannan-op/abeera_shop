@@ -182,7 +182,6 @@ function FilterFields({ options }: { options: Options }) {
 
   const priceActive = urlMin !== options.min || urlMax !== options.max;
   const hasFilters =
-    selectedColors.length > 0 ||
     selectedSizes.length > 0 ||
     availability !== "all" ||
     priceActive;
@@ -262,13 +261,6 @@ function FilterFields({ options }: { options: Options }) {
           onRemove={() => setAvailability("all")}
         />
       ) : null}
-      {selectedColors.map((color) => (
-        <FilterChip
-          key={color}
-          label={color}
-          onRemove={() => toggle("color", color, selectedColors)}
-        />
-      ))}
       {selectedSizes.map((size) => (
         <FilterChip
           key={size}
@@ -305,13 +297,6 @@ function FilterFields({ options }: { options: Options }) {
             sizes={visibleSizes}
             selected={selectedSizes}
             onToggle={(size) => toggle("size", size, selectedSizes)}
-          />
-        </FilterMenu>
-        <FilterMenu label="Colour" count={selectedColors.length}>
-          <ColourOptions
-            colors={options.colors}
-            selected={selectedColors}
-            onToggle={(color) => toggle("color", color, selectedColors)}
           />
         </FilterMenu>
         <FilterMenu label="Price" count={priceActive ? 1 : 0}>

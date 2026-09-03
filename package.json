@@ -2,11 +2,23 @@
   "name": "abeera",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:all": "turbo run dev --parallel",
     "build": "next build",
+    "build:api": "npm run build --workspace=apps/api",
+    "build:all": "turbo run build",
     "start": "next start",
-    "lint": "eslint"
+    "start:api": "npm run start:prod --workspace=apps/api",
+    "lint": "eslint",
+    "db:generate": "npm run db:generate --workspace=apps/api",
+    "db:push": "npm run db:push --workspace=apps/api",
+    "db:seed": "npm run db:seed --workspace=apps/api"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

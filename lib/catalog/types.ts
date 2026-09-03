@@ -1,9 +1,6 @@
 export const CATEGORY_SLUGS = [
   "new-arrivals",
-  "dresses",
-  "tops",
-  "bottoms",
-  "outerwear",
+  "stitched-suits",
   "accessories",
   "sale",
 ] as const;

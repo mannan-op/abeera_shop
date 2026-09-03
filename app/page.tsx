@@ -21,8 +21,8 @@ export default function HomePage() {
       <TypeInterlude />
       <CampaignTwo />
       <ProductRail
-        eyebrow="The atelier edit"
-        title="Best sellers"
+        eyebrow="Most loved"
+        title="Best Sellers"
         href="/shop?sort=featured"
         products={bestsellers}
       />

@@ -13,7 +13,7 @@ export function Testimonials() {
     <Reveal>
       <section className="bg-card px-5 py-24 md:px-10 md:py-32">
         <div className="mx-auto max-w-4xl text-center">
-          <p className="kicker">Clients</p>
+          <p className="kicker">Our customers</p>
           <blockquote className="mt-10">
             <p className="font-serif text-3xl leading-snug italic md:text-5xl">
               “{current.quote}”

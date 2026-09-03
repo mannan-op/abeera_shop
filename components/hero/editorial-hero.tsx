@@ -20,7 +20,7 @@ export function EditorialHero() {
       >
         <Image
           src={IMG.hero}
-          alt="Model in Abeera spring tailoring, walking through late afternoon light"
+          alt="Model in Abeera embroidered ensemble, soft natural light"
           fill
           priority
           className="object-cover object-[center_20%]"
@@ -36,11 +36,11 @@ export function EditorialHero() {
         className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-[#14110e]/70 to-transparent"
       />
       <div className="relative mx-auto flex min-h-[100svh] max-w-[1440px] flex-col justify-end px-5 pb-10 pt-36 md:px-10 md:pb-12">
-        <p className="kicker text-gold">Spring atelier · Paris</p>
+        <p className="kicker text-gold">Eid Collection · Lahore</p>
         <h1 className="mt-4 max-w-5xl font-serif text-[clamp(2.75rem,9vw,8rem)] leading-[0.92] text-ivory">
-          Clothes for rooms
+          Woven with
           <br />
-          <em className="font-serif text-[0.78em] font-normal italic text-gold">with good light.</em>
+          <em className="font-serif text-[0.78em] font-normal italic text-gold">tradition & grace.</em>
         </h1>
         <Link
           href="/shop"

@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Outfit } from "next/font/google";
+import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 
 import { Providers } from "@/components/providers";
 import { SiteShell } from "@/components/layout/site-shell";
 
 import "./globals.css";
 
-const outfit = Outfit({
+const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const instrument = Instrument_Serif({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-serif",
   display: "swap",
@@ -23,18 +23,18 @@ const instrument = Instrument_Serif({
 export const metadata: Metadata = {
   metadataBase: new URL("https://abeera.example"),
   title: {
-    default: "Abeera — Contemporary Fashion",
+    default: "Abeera — Pakistani Women's Clothing",
     template: "%s — Abeera",
   },
   description:
-    "Abeera is a contemporary fashion house of considered silhouettes, natural fabrics, and an editorial approach to everyday dressing.",
+    "Abeera is a Pakistani women's clothing brand offering stitched suits, formals, and accessories with craftsmanship rooted in tradition.",
   openGraph: {
     type: "website",
-    locale: "en_US",
+    locale: "en_PK",
     siteName: "Abeera",
-    title: "Abeera — Contemporary Fashion",
+    title: "Abeera — Pakistani Women's Clothing",
     description:
-      "Considered silhouettes, natural fabrics, and an editorial approach to everyday dressing.",
+      "Stitched suits, formals, and accessories with craftsmanship rooted in tradition.",
   },
 };
 
@@ -44,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${instrument.variable}`}>
+    <html lang="en" className={`${dmSans.variable} ${cormorant.variable}`}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Providers>
           <SiteShell>{children}</SiteShell>

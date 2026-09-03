@@ -3,21 +3,21 @@ import type { Address, Order, Review, Testimonial } from "@/lib/catalog/types";
 export const testimonials: Testimonial[] = [
   {
     quote:
-      "The Harbor coat arrived and I cancelled two others. It has the kind of shoulder you only find in a proper atelier.",
-    name: "Amira K.",
-    role: "Architect, Lisbon",
+      "The embroidery on the Eid formal was so fine, everyone at the daawat asked for the brand. This is the quality I grew up seeing in my mother's wardrobe.",
+    name: "Ayesha R.",
+    role: "Doctor, Lahore",
   },
   {
     quote:
-      "Abeera is the first brand whose white shirt I have reordered. The Cloud shirt does not gape, does not cling, does not shout.",
-    name: "Helen R.",
-    role: "Editor, London",
+      "I ordered the lawn suit unstitched and the fabric is exactly what I wanted — soft, breathable, and the print is even more beautiful in person.",
+    name: "Hira N.",
+    role: "Teacher, Islamabad",
   },
   {
     quote:
-      "I wore the Lumen slip under the Night trench to a wedding and three people asked who made the dress. That is all I want from clothes.",
-    name: "Sofia M.",
-    role: "Curator, Milan",
+      "I wore the luxury prêt kurta to a mehndi and received so many compliments. Abeera understands Pakistani women — elegant without being overdone.",
+    name: "Sana M.",
+    role: "Designer, Karachi",
   },
 ];
 
@@ -25,31 +25,31 @@ export const reviews: Review[] = [
   {
     id: "r1",
     productId: "p-lumen-slip",
-    author: "Clara N.",
-    location: "Paris",
+    author: "Fatima A.",
+    location: "Lahore",
     rating: 5,
-    title: "The only slip I will travel with",
-    body: "The bias cut is honest — it hangs, it does not cling. Ivory photographs as quiet, not bridal.",
+    title: "Perfect for Eid",
+    body: "The fabric quality is outstanding and the embroidery is delicate. Received so many compliments at the family gathering.",
     date: "2026-04-12",
   },
   {
     id: "r2",
     productId: "p-harbor-coat",
-    author: "Leila S.",
-    location: "New York",
+    author: "Zara K.",
+    location: "Karachi",
     rating: 5,
-    title: "Worth the wait",
-    body: "Weight without bulk. I wear it open over the Cloud shirt and it still looks finished.",
+    title: "Beautiful formal piece",
+    body: "The zardozi work is exquisite. Wore this to a valima and it was perfect — elegant without being heavy.",
     date: "2026-03-02",
   },
   {
     id: "r3",
     productId: "p-cloud-shirt",
-    author: "Maya P.",
-    location: "Copenhagen",
+    author: "Mehreen S.",
+    location: "Islamabad",
     rating: 5,
-    title: "Finally a white shirt",
-    body: "The hidden placket is the entire difference. I own two.",
+    title: "My go-to kurta",
+    body: "The cotton is so soft and the stitching is flawless. I have ordered two more for daily wear.",
     date: "2026-02-18",
   },
 ];
@@ -57,13 +57,13 @@ export const reviews: Review[] = [
 export const demoAddress: Address = {
   id: "addr-home",
   label: "Home",
-  name: "Amira Khalil",
-  line1: "18 Rue des Archives",
-  city: "Paris",
-  region: "Île-de-France",
-  postalCode: "75004",
-  country: "France",
-  phone: "+33 1 42 00 00 00",
+  name: "Abeera Ahmed",
+  line1: "42 M.M. Alam Road, Gulberg III",
+  city: "Lahore",
+  region: "Punjab",
+  postalCode: "54000",
+  country: "Pakistan",
+  phone: "+92 300 1234567",
 };
 
 export const demoOrders: Order[] = [
@@ -119,29 +119,29 @@ export const demoOrders: Order[] = [
 
 export const faqs = [
   {
-    question: "How long does shipping take?",
+    question: "How long does delivery take?",
     answer:
-      "Orders placed before 14:00 CET leave the atelier the same day. Europe: 2–4 days. United States and Middle East: 4–7 days. A tracking number is sent as soon as the parcel is in transit.",
+      "Orders within Pakistan are delivered in 3–5 business days. International orders take 7–12 business days. You will receive a tracking number via SMS and email once your order ships.",
   },
   {
-    question: "What is your returns policy?",
+    question: "What is your return & exchange policy?",
     answer:
-      "Unworn pieces with tags may be returned within 30 days. Sale items are final. Made-to-order and pierced jewellery cannot be returned. Use the prepaid label in your parcel or start a return from your order page.",
+      "Unworn items with tags may be returned or exchanged within 14 days. Sale items and stitched-to-order pieces are final sale. Contact us via WhatsApp or email to initiate a return.",
   },
   {
-    question: "Do you offer alterations?",
+    question: "Do you offer stitching?",
     answer:
-      "Hemming and waist suppression are available on trousers, coats, and dresses at the atelier in Paris. Write to care@abeera.example with your order number.",
+      "Yes, we offer custom stitching on all unstitched suits. Select your size and preferred style at checkout. Stitched orders take an additional 5–7 business days.",
   },
   {
     question: "How do I find my size?",
     answer:
-      "Each product includes a size guide with garment measurements. If you are between sizes, we generally recommend the smaller for structured pieces and the larger for linen and silk. Our care team will advise within a day.",
+      "Each product page includes a detailed size chart with bust, waist, hip, and length measurements. For unstitched fabric, we include a measurement form at checkout. Our team is available on WhatsApp for guidance.",
   },
   {
-    question: "Are your materials traced?",
+    question: "What fabrics do you use?",
     answer:
-      "Silk is mill-traced in Italy. Linen is European flax. Cashmere is Grade A from Inner Mongolia, dyed in Scotland. Leather is vegetable-tanned in Tuscany. We publish mill names on request.",
+      "We source lawn from Faisalabad, chiffon and organza from trusted mills, and our embroidery is done by skilled artisans in Lahore and Multan. Silk is sourced from quality suppliers in Pakistan and abroad.",
   },
 ];
 
@@ -149,19 +149,19 @@ export const shippingMethods = [
   {
     id: "standard",
     name: "Standard",
-    detail: "4–7 business days",
-    price: 1800,
+    detail: "3–5 business days",
+    price: 30000,
   },
   {
     id: "express",
     name: "Express",
-    detail: "2–3 business days",
-    price: 3800,
+    detail: "1–2 business days",
+    price: 50000,
   },
   {
-    id: "atelier",
-    name: "Atelier complimentary",
-    detail: "Orders over $400 · 4–7 days",
+    id: "free",
+    name: "Free Delivery",
+    detail: "Orders over Rs. 5,000 · 3–5 days",
     price: 0,
   },
 ] as const;

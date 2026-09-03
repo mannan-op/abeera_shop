@@ -45,9 +45,9 @@ function CampaignTile({
 
 export function CampaignThree() {
   const tiles = [
-    { href: "/category/dresses", image: IMG.collectionDresses, title: "Dresses" },
-    { href: "/category/new-arrivals", image: IMG.collectionNew, title: "New arrivals" },
-    { href: "/category/outerwear", image: IMG.collectionOuter, title: "Outerwear" },
+    { href: "/category/stitched-suits", image: IMG.collectionDresses, title: "Stitched Suits" },
+    { href: "/category/new-arrivals", image: IMG.collectionNew, title: "New Arrivals" },
+    { href: "/category/accessories", image: IMG.collectionOuter, title: "Accessories" },
   ];
 
   return (
@@ -66,9 +66,9 @@ export function CampaignThree() {
 export function TypeInterlude() {
   return (
     <section className="px-5 py-16 text-center md:px-10 md:py-24">
-      <p className="kicker">The atelier</p>
+      <p className="kicker">The craft</p>
       <h2 className="mt-4 font-serif text-3xl uppercase tracking-[0.12em] md:text-5xl">
-        Fewer pieces. Better cloth.
+        Rooted in heritage. Made for today.
       </h2>
     </section>
   );
@@ -78,16 +78,16 @@ export function CampaignTwo() {
   return (
     <section className="grid grid-cols-1 md:grid-cols-2">
       <CampaignTile
-        href="/category/dresses"
+        href="/category/stitched-suits"
         image={IMG.banner}
-        title="The dress edit"
+        title="Stitched Collection"
         sizes="(max-width: 768px) 100vw, 50vw"
         className="md:min-h-[40rem]"
       />
       <CampaignTile
         href="/about"
         image={IMG.story}
-        title="The house"
+        title="Our Story"
         sizes="(max-width: 768px) 100vw, 50vw"
         className="md:min-h-[40rem]"
       />
@@ -97,10 +97,10 @@ export function CampaignTwo() {
 
 export function CampaignFour() {
   const tiles = [
-    { href: "/category/accessories", image: IMG.collectionAccessories, title: "Accessories" },
-    { href: "/category/tops", image: IMG.topWhiteA, title: "Tops" },
-    { href: "/category/sale", image: IMG.blazerA, title: "The sale edit" },
-    { href: "/shop", image: IMG.atelier, title: "The atelier" },
+    { href: "/category/stitched-suits", image: IMG.collectionAccessories, title: "Stitched Suits" },
+    { href: "/category/accessories", image: IMG.topWhiteA, title: "Accessories" },
+    { href: "/category/sale", image: IMG.blazerA, title: "Sale" },
+    { href: "/shop", image: IMG.atelier, title: "Shop All" },
   ];
 
   return (
@@ -122,15 +122,15 @@ export function CampaignFour() {
 export function BrandStrip() {
   return (
     <section className="mx-auto max-w-3xl px-5 py-16 text-center md:py-24">
-      <p className="kicker">The house</p>
+      <p className="kicker">Our heritage</p>
       <p className="mt-5 text-base leading-relaxed text-muted-foreground md:text-lg">
-        Abeera began above a courtyard in the Marais. We still cut there — silk from Como, linen from Flanders, cashmere from mills that answer the phone.
+        Abeera began in Lahore — lawn from Faisalabad, chiffon from Gujranwala, zardozi from artisans who have stitched for generations. Every piece carries a story.
       </p>
       <Link
         href="/about"
         className="mt-8 inline-block text-[11px] uppercase tracking-[0.18em] underline underline-offset-4"
       >
-        Read the story
+        Read our story
       </Link>
     </section>
   );

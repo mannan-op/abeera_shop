@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata = {
   title: "Shop",
-  description: "The full Abeera atelier — dresses, tailoring, linen, and finishing pieces.",
+  description: "The full Abeera collection — unstitched, prêt, luxury formals, and accessories.",
 };
 
 export default async function ShopPage({
@@ -16,10 +16,10 @@ export default async function ShopPage({
   const params = await searchParams;
   return (
     <div className="mx-auto max-w-[1440px] px-5 py-12 md:px-10 md:py-16">
-      <p className="kicker">The atelier</p>
+      <p className="kicker">Our collection</p>
       <h1 className="mt-4 font-serif text-5xl md:text-6xl">Shop</h1>
       <p className="mt-4 max-w-xl text-sm text-muted-foreground">
-        Every piece is cut to be worn for years. Filter by cloth, colour, and silhouette.
+        From everyday lawn to festive formals — crafted for the modern Pakistani woman.
       </p>
       <div className="mt-10">
         <Suspense fallback={<Skeleton className="h-96" />}>

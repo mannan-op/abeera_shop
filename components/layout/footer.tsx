@@ -8,13 +8,13 @@ const columns = [
     links: [
       { href: "/shop", label: "All" },
       { href: "/category/new-arrivals", label: "New Arrivals" },
-      { href: "/category/dresses", label: "Dresses" },
-      { href: "/category/outerwear", label: "Outerwear" },
+      { href: "/category/stitched-suits", label: "Stitched Suits" },
+      { href: "/category/accessories", label: "Accessories" },
       { href: "/category/sale", label: "Sale" },
     ],
   },
   {
-    title: "House",
+    title: "Help",
     links: [
       { href: "/about", label: "About" },
       { href: "/contact", label: "Contact" },

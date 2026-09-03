@@ -10,8 +10,8 @@ export function SocialGallery() {
   return (
     <Reveal>
       <section className="mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-24">
-        <p className="kicker">@abeera.atelier</p>
-        <h2 className="mt-4 font-serif text-4xl md:text-5xl">In the world</h2>
+        <p className="kicker">@abeera.pk</p>
+        <h2 className="mt-4 font-serif text-4xl md:text-5xl">As worn by you</h2>
         <div className="mt-10 grid grid-cols-2 gap-2 md:grid-cols-6 md:gap-3">
           {frames.map((src, index) => (
             <div key={`${src}-${index}`} className="group relative aspect-square overflow-hidden">
@@ -35,12 +35,12 @@ export function NewsletterSection() {
     <Reveal>
       <section className="px-5 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="kicker">Atelier notes</p>
+          <p className="kicker">Stay connected</p>
           <h2 className="mt-4 font-serif text-4xl md:text-6xl">
-            Notes from the <em className="italic text-gold">atelier</em>
+            Join the <em className="italic text-gold">Abeera</em> family
           </h2>
           <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-            Restocks, lookbooks, and the occasional essay. No discounts in your inbox.
+            New launches, restocks, and styling inspiration — delivered to your inbox.
           </p>
           <div className="mt-10">
             <NewsletterForm />
