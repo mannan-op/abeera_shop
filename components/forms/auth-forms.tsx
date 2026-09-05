@@ -256,7 +256,8 @@ function Field({
   type?: string;
   autoComplete?: string;
   error?: string;
-  register: ReturnType<typeof useForm>["register"];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  register: any;
 }) {
   return (
     <div>
@@ -280,7 +281,8 @@ function PasswordField({
   visible: boolean;
   setVisible: (value: boolean) => void;
   error?: string;
-  register: ReturnType<typeof useForm>["register"];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  register: any;
 }) {
   return (
     <div>
