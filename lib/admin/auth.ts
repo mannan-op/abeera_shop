@@ -1,32 +1,68 @@
 import { cookies } from "next/headers";
 
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin123";
-const SESSION_COOKIE = "admin_session";
-const SESSION_TOKEN = "abeera_admin_authenticated_2026";
+const ACCESS_COOKIE = "abeera_access_token";
+const REFRESH_COOKIE = "abeera_refresh_token";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
-export async function verifyCredentials(username: string, password: string) {
-  return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+export async function verifyCredentials(email: string, password: string) {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  const data = (await res.json()) as {
+    accessToken: string;
+    refreshToken: string;
+    user: { role: string };
+  };
+  if (data.user.role !== "ADMIN") return null;
+  return data;
 }
 
-export async function createSession() {
+export async function createSession(tokens: { accessToken: string; refreshToken: string }) {
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, SESSION_TOKEN, {
+  const secure = process.env.NODE_ENV === "production";
+  cookieStore.set(ACCESS_COOKIE, tokens.accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure,
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24,
+    maxAge: 60 * 15,
+  });
+  cookieStore.set(REFRESH_COOKIE, tokens.refreshToken, {
+    httpOnly: true,
+    secure,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
   });
 }
 
 export async function destroySession() {
   const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE);
+  const refresh = cookieStore.get(REFRESH_COOKIE)?.value;
+  if (refresh) {
+    await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken: refresh }),
+      cache: "no-store",
+    }).catch(() => undefined);
+  }
+  cookieStore.delete(ACCESS_COOKIE);
+  cookieStore.delete(REFRESH_COOKIE);
+}
+
+export async function getAccessToken() {
+  const cookieStore = await cookies();
+  return cookieStore.get(ACCESS_COOKIE)?.value ?? null;
 }
 
 export async function isAuthenticated() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get(SESSION_COOKIE);
-  return session?.value === SESSION_TOKEN;
+  const token = await getAccessToken();
+  return Boolean(token);
 }
+
+export { ACCESS_COOKIE, REFRESH_COOKIE };

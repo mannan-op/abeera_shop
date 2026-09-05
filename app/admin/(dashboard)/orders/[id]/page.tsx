@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { demoOrders } from "@/lib/catalog/content";
+import { getAccessToken } from "@/lib/admin/auth";
+import { apiClient } from "@/lib/api/client";
 import { formatPrice } from "@/lib/utils";
 
 export default async function OrderDetailPage({
@@ -11,8 +12,43 @@ export default async function OrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const order = demoOrders.find((o) => o.id === id);
-  if (!order) notFound();
+  const token = await getAccessToken();
+  if (!token) notFound();
+
+  let order: {
+    id: string;
+    orderNumber: string;
+    status: string;
+    createdAt: string;
+    subtotal: number;
+    shipping: number;
+    tax: number;
+    total: number;
+    items: {
+      productName: string;
+      color: string;
+      size: string;
+      quantity: number;
+      price: number;
+    }[];
+    address: {
+      name: string;
+      line1: string;
+      line2?: string | null;
+      city: string;
+      region: string;
+      postalCode: string;
+      country: string;
+      phone: string;
+    };
+    payment?: { method: string; status: string };
+  };
+
+  try {
+    order = await apiClient.get(`/admin/orders/${id}`, { token, cache: "no-store" });
+  } catch {
+    notFound();
+  }
 
   return (
     <div>
@@ -25,9 +61,9 @@ export default async function OrderDetailPage({
       </Link>
 
       <div className="flex items-center gap-4">
-        <h1 className="font-serif text-3xl">Order {order.number}</h1>
+        <h1 className="font-serif text-3xl">Order {order.orderNumber}</h1>
         <span className="rounded-full bg-muted px-3 py-1 text-xs capitalize">
-          {order.status}
+          {order.status.toLowerCase()}
         </span>
       </div>
 
@@ -40,7 +76,7 @@ export default async function OrderDetailPage({
             {order.items.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{item.name}</p>
+                  <p className="font-medium">{item.productName}</p>
                   <p className="text-xs text-muted-foreground">
                     {item.color} · {item.size} · Qty {item.quantity}
                   </p>
@@ -79,8 +115,7 @@ export default async function OrderDetailPage({
               <p>{order.address.line1}</p>
               {order.address.line2 ? <p>{order.address.line2}</p> : null}
               <p>
-                {order.address.city}, {order.address.region}{" "}
-                {order.address.postalCode}
+                {order.address.city}, {order.address.region} {order.address.postalCode}
               </p>
               <p>{order.address.country}</p>
               <p className="mt-2 text-muted-foreground">{order.address.phone}</p>
@@ -89,12 +124,14 @@ export default async function OrderDetailPage({
 
           <div className="rounded-xl border border-border bg-[#faf7f2] p-6">
             <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-              Delivery
+              Payment
             </h2>
-            <p className="mt-3 text-sm">{order.estimatedDelivery}</p>
+            <p className="mt-3 text-sm">
+              {order.payment?.method ?? "—"} · {order.payment?.status ?? "—"}
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
               Placed{" "}
-              {new Date(order.placedAt).toLocaleDateString("en-PK", {
+              {new Date(order.createdAt).toLocaleDateString("en-PK", {
                 day: "numeric",
                 month: "long",
                 year: "numeric",

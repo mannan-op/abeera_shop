@@ -4,6 +4,7 @@ export { IMG, unsplash } from "@/lib/catalog/images";
 export {
   getProduct,
   getProductById,
+  getProductByIdSync,
   listProducts,
   getCategory,
   getCategories,

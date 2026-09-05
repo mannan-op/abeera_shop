@@ -12,7 +12,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { getCategories, getCollections } from "@/lib/catalog";
+import { categories as catalogCategories, collections } from "@/lib/catalog/products";
 import { useShop } from "@/lib/store/shop";
 import { cn } from "@/lib/utils";
 
@@ -36,9 +36,8 @@ const collectionCopy = [
 
 export function Navbar({ inverted = false }: { inverted?: boolean }) {
   const { cartCount, wishlist, setCartOpen, setSearchOpen, setNavOpen } = useShop();
-  const collections = getCollections();
   const featured = collections[0];
-  const categories = getCategories().filter(
+  const categories = catalogCategories.filter(
     (category) => category.slug !== "new-arrivals" && category.slug !== "sale",
   );
 

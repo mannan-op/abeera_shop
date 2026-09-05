@@ -3,7 +3,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 
-import { getProductById } from "@/lib/catalog/queries";
+import { getProductByIdSync } from "@/lib/catalog/queries";
 import type { CartItem, Product } from "@/lib/catalog/types";
 
 type ShopContextValue = {
@@ -223,14 +223,16 @@ export function cartItemFromProduct(
   quantity = 1,
 ): CartItem {
   const colorEntry = product.colors.find((entry) => entry.name === color) ?? product.colors[0];
+  const variant = product.variants?.find((entry) => entry.color === color && entry.size === size);
   return {
     productId: product.id,
+    variantId: variant?.id,
     slug: product.slug,
     name: product.name,
     image: colorEntry.images[0],
     color,
     size,
-    price: product.price,
+    price: variant?.price ?? product.price,
     quantity,
   };
 }
@@ -238,7 +240,7 @@ export function cartItemFromProduct(
 export function useWishlistProducts() {
   const { wishlist } = useShop();
   return wishlist
-    .map((id) => getProductById(id))
+    .map((id) => getProductByIdSync(id))
     .filter((product): product is Product => Boolean(product));
 }
 

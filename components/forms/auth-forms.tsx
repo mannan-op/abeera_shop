@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -11,14 +12,16 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { customerLogin, customerRegister } from "@/lib/auth/customer-actions";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email"),
-  password: z.string().min(8, "Use at least 8 characters"),
+  password: z.string().min(6, "Use at least 6 characters"),
 });
 
 export function LoginForm() {
   const [visible, setVisible] = React.useState(false);
+  const router = useRouter();
   const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
@@ -26,15 +29,22 @@ export function LoginForm() {
   });
 
   return (
-    <AuthFrame
-      title="Welcome back"
-      subtitle="Sign in to the atelier. This is a preview — no session is created."
-    >
+    <AuthFrame title="Welcome back" subtitle="Sign in to track orders and check out faster.">
       <form
         className="space-y-4"
-        onSubmit={form.handleSubmit(async () => {
-          await wait();
-          toast.success("Forms validate. Authentication is not connected.");
+        onSubmit={form.handleSubmit(async (values) => {
+          const result = await customerLogin(values.email, values.password);
+          if (!result.ok) {
+            toast.error(result.error);
+            return;
+          }
+          toast.success("Signed in");
+          const next =
+            typeof window !== "undefined"
+              ? new URLSearchParams(window.location.search).get("next")
+              : null;
+          router.push(next || "/account");
+          router.refresh();
         })}
       >
         <Field
@@ -54,7 +64,6 @@ export function LoginForm() {
         <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? "Signing in…" : "Sign in"}
         </Button>
-        <SocialPlaceholders />
         <p className="text-center text-sm text-muted-foreground">
           <Link href="/forgot-password" className="underline-offset-4 hover:underline">
             Forgot password
@@ -71,27 +80,41 @@ export function LoginForm() {
 
 const registerSchema = loginSchema.extend({
   name: z.string().min(1, "Enter your name"),
+  phone: z.string().min(10, "Enter a valid phone").optional().or(z.literal("")),
 });
 
 export function RegisterForm() {
   const [visible, setVisible] = React.useState(false);
+  const router = useRouter();
   const form = useForm({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { name: "", email: "", password: "", phone: "" },
     mode: "onBlur",
   });
 
   return (
-    <AuthFrame title="Create an account" subtitle="A client book for orders, wishlist, and alterations.">
+    <AuthFrame title="Create an account" subtitle="Save addresses, track orders, and checkout securely.">
       <form
         className="space-y-4"
-        onSubmit={form.handleSubmit(async () => {
-          await wait();
-          toast.success("Account forms are ready. No account is created yet.");
+        onSubmit={form.handleSubmit(async (values) => {
+          const result = await customerRegister({
+            name: values.name,
+            email: values.email,
+            password: values.password,
+            phone: values.phone || undefined,
+          });
+          if (!result.ok) {
+            toast.error(result.error);
+            return;
+          }
+          toast.success("Account created");
+          router.push("/account");
+          router.refresh();
         })}
       >
         <Field id="name" label="Name" autoComplete="name" error={form.formState.errors.name?.message} register={form.register} />
         <Field id="email" label="Email" type="email" autoComplete="email" error={form.formState.errors.email?.message} register={form.register} />
+        <Field id="phone" label="Phone" type="tel" autoComplete="tel" error={form.formState.errors.phone?.message} register={form.register} />
         <PasswordField
           error={form.formState.errors.password?.message}
           register={form.register}
@@ -101,7 +124,6 @@ export function RegisterForm() {
         <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? "Creating…" : "Create account"}
         </Button>
-        <SocialPlaceholders />
         <p className="text-center text-sm text-muted-foreground">
           Already a client?{" "}
           <Link href="/login" className="underline-offset-4 hover:underline">
@@ -124,7 +146,7 @@ export function ForgotForm() {
 
   if (sent) {
     return (
-      <AuthFrame title="Check your post" subtitle="If this were live, a reset link would be on its way.">
+      <AuthFrame title="Check your inbox" subtitle="If an account exists, reset instructions will arrive shortly.">
         <Button asChild variant="outline" className="w-full">
           <Link href="/login">Return to sign in</Link>
         </Button>
@@ -133,11 +155,10 @@ export function ForgotForm() {
   }
 
   return (
-    <AuthFrame title="Reset password" subtitle="We will send a link if the email is on the client book.">
+    <AuthFrame title="Reset password" subtitle="Password reset email is not enabled yet — contact support if locked out.">
       <form
         className="space-y-4"
         onSubmit={form.handleSubmit(async () => {
-          await wait();
           setSent(true);
         })}
       >
@@ -159,7 +180,7 @@ export function ForgotForm() {
 
 const resetSchema = z
   .object({
-    password: z.string().min(8, "Use at least 8 characters"),
+    password: z.string().min(8, "Use at least eight characters"),
     confirm: z.string().min(8),
   })
   .refine((value) => value.password === value.confirm, {
@@ -175,12 +196,11 @@ export function ResetForm() {
   });
 
   return (
-    <AuthFrame title="Choose a new password" subtitle="Use at least eight characters.">
+    <AuthFrame title="Choose a new password" subtitle="Password reset is not connected yet.">
       <form
         className="space-y-4"
         onSubmit={form.handleSubmit(async () => {
-          await wait();
-          toast.success("Password forms validate. Nothing was changed.");
+          toast.message("Password reset is not available yet.");
         })}
       >
         <PasswordField
@@ -236,7 +256,7 @@ function Field({
   type?: string;
   autoComplete?: string;
   error?: string;
-  register: any;
+  register: ReturnType<typeof useForm>["register"];
 }) {
   return (
     <div>
@@ -260,7 +280,7 @@ function PasswordField({
   visible: boolean;
   setVisible: (value: boolean) => void;
   error?: string;
-  register: any;
+  register: ReturnType<typeof useForm>["register"];
 }) {
   return (
     <div>
@@ -289,21 +309,4 @@ function PasswordField({
       ) : null}
     </div>
   );
-}
-
-function SocialPlaceholders() {
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      <Button type="button" variant="outline" disabled>
-        Google
-      </Button>
-      <Button type="button" variant="outline" disabled>
-        Apple
-      </Button>
-    </div>
-  );
-}
-
-function wait() {
-  return new Promise((resolve) => setTimeout(resolve, 500));
 }

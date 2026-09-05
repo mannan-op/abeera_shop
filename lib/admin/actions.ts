@@ -2,21 +2,19 @@
 
 import { redirect } from "next/navigation";
 
-import { createSession, destroySession, verifyCredentials } from "@/lib/admin/auth";
-import { products } from "@/lib/catalog/products";
-import { demoOrders } from "@/lib/catalog/content";
-import type { Product } from "@/lib/catalog/types";
+import { createSession, destroySession, getAccessToken, verifyCredentials } from "@/lib/admin/auth";
+import { apiClient } from "@/lib/api/client";
 
 export async function loginAction(_prev: string | null, formData: FormData) {
-  const username = formData.get("username") as string;
-  const password = formData.get("password") as string;
+  const email = String(formData.get("username") ?? formData.get("email") ?? "");
+  const password = String(formData.get("password") ?? "");
 
-  if (!username || !password) return "Please enter both fields.";
+  if (!email || !password) return "Please enter both fields.";
 
-  const valid = await verifyCredentials(username, password);
-  if (!valid) return "Invalid username or password.";
+  const tokens = await verifyCredentials(email, password);
+  if (!tokens) return "Invalid credentials or not an admin account.";
 
-  await createSession();
+  await createSession(tokens);
   redirect("/admin");
 }
 
@@ -26,70 +24,92 @@ export async function logoutAction() {
 }
 
 export async function deleteProductAction(productId: string) {
-  const index = products.findIndex((p) => p.id === productId);
-  if (index !== -1) products.splice(index, 1);
+  const token = await getAccessToken();
+  if (!token) redirect("/admin/login");
+  await apiClient.delete(`/admin/products/${productId}`, { token });
   redirect("/admin/products");
 }
 
 export async function saveProductAction(_prev: string | null, formData: FormData) {
-  const id = formData.get("id") as string;
+  const token = await getAccessToken();
+  if (!token) redirect("/admin/login");
+
+  const id = formData.get("id") as string | null;
   const name = formData.get("name") as string;
   const slug = formData.get("slug") as string;
-  const tagline = formData.get("tagline") as string;
-  const description = formData.get("description") as string;
-  const details = formData.get("details") as string;
-  const materials = formData.get("materials") as string;
-  const care = formData.get("care") as string;
-  const category = formData.get("category") as Product["category"];
+  const tagline = (formData.get("tagline") as string) ?? "";
+  const description = (formData.get("description") as string) ?? "";
+  const details = (formData.get("details") as string) ?? "";
+  const materials = (formData.get("materials") as string) ?? "";
+  const care = (formData.get("care") as string) ?? "";
+  const categorySlug = formData.get("category") as string;
   const price = Math.round(Number(formData.get("price")) * 100);
   const isNew = formData.get("isNew") === "on";
   const isBestSeller = formData.get("isBestSeller") === "on";
 
-  if (!name || !slug || !category) return "Name, slug, and category are required.";
+  if (!name || !slug || !categorySlug) return "Name, slug, and category are required.";
 
-  const existing = products.find((p) => p.id === id);
+  const categories = await apiClient.get<{ id: string; slug: string }[]>("/categories", { token });
+  const category = categories.find((c) => c.slug === categorySlug);
+  if (!category) return "Category not found on API.";
 
-  if (existing) {
-    Object.assign(existing, {
-      name,
-      slug,
-      tagline,
-      description,
-      details,
-      materials,
-      care,
-      category,
-      price,
-      isNew,
-      isBestSeller,
-    });
+  if (id) {
+    await apiClient.patch(
+      `/admin/products/${id}`,
+      {
+        name,
+        slug,
+        tagline,
+        description,
+        details,
+        materials,
+        care,
+        categoryId: category.id,
+        isNew,
+        isBestSeller,
+      },
+      { token },
+    );
   } else {
-    products.push({
-      id: `p-${Date.now()}`,
-      slug,
-      name,
-      tagline,
-      description,
-      details,
-      materials,
-      care,
-      category,
-      price,
-      rating: 0,
-      reviewCount: 0,
-      isNew,
-      isBestSeller,
-      colors: [{ name: "Default", hex: "#888888", images: ["/placeholder.svg", "/placeholder.svg"] }],
-      sizes: ["XS", "S", "M", "L", "XL"],
-    });
+    await apiClient.post(
+      "/admin/products",
+      {
+        name,
+        slug,
+        tagline,
+        description,
+        details,
+        materials,
+        care,
+        categoryId: category.id,
+        isNew,
+        isBestSeller,
+        variants: [
+          {
+            color: "Default",
+            colorHex: "#888888",
+            size: "M",
+            priceInPaisa: price,
+            stock: 10,
+          },
+        ],
+      },
+      { token },
+    );
   }
 
   redirect("/admin/products");
 }
 
 export async function getAdminStats() {
-  const totalProducts = products.length;
-  const totalOrders = demoOrders.length;
-  const totalRevenue = demoOrders.reduce((sum, order) => sum + order.total, 0);
-  return { totalProducts, totalOrders, totalRevenue };
+  const token = await getAccessToken();
+  if (!token) {
+    return { totalProducts: 0, totalOrders: 0, totalRevenue: 0, recentOrders: [] };
+  }
+  return apiClient.get<{
+    totalProducts: number;
+    totalOrders: number;
+    totalRevenue: number;
+    recentOrders: unknown[];
+  }>("/admin/dashboard", { token, cache: "no-store" });
 }

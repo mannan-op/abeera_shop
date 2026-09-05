@@ -8,7 +8,8 @@ import { getAllProductSlugs, getCategory, getProduct, getRelated, reviews } from
 import type { Metadata } from "next";
 
 export async function generateStaticParams() {
-  return getAllProductSlugs().map((slug) => ({ slug }));
+  const slugs = await getAllProductSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -17,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!product) return { title: "Product" };
   return {
     title: product.name,
@@ -34,9 +35,10 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
-  const related = getRelated(product);
+  const related = await getRelated(product);
+  const category = await getCategory(product.category);
   const productReviews = reviews.filter((review) => review.productId === product.id);
 
   return (
@@ -45,7 +47,7 @@ export default async function ProductPage({
         items={[
           { href: "/", label: "Home" },
           { href: "/shop", label: "Shop" },
-          { href: `/category/${product.category}`, label: getCategory(product.category)?.name ?? product.category },
+          { href: `/category/${product.category}`, label: category?.name ?? product.category },
           { label: product.name },
         ]}
       />

@@ -1,0 +1,1103 @@
+{
+  "categories": [
+    {
+      "slug": "new-arrivals",
+      "name": "New Arrivals",
+      "description": "Fresh designs for the season — new prints, embroideries, and silhouettes.",
+      "image": "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1200",
+      "editorial": "Just landed."
+    },
+    {
+      "slug": "stitched-suits",
+      "name": "Stitched Suits",
+      "description": "Ready-to-wear kurtas, two-piece and three-piece suits for every occasion.",
+      "image": "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&q=80&w=1200",
+      "editorial": "Crafted & ready to wear."
+    },
+    {
+      "slug": "accessories",
+      "name": "Accessories",
+      "description": "Handcrafted jewellery, clutches, khussas, and finishing pieces.",
+      "image": "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1200",
+      "editorial": "The details."
+    },
+    {
+      "slug": "sale",
+      "name": "Sale",
+      "description": "Previous-season pieces at reduced prices. Limited stock.",
+      "image": "https://images.unsplash.com/photo-1558171813-4c088753af8f?auto=format&fit=crop&q=80&w=1200",
+      "editorial": "While it lasts."
+    }
+  ],
+  "collections": [
+    {
+      "slug": "eid-collection",
+      "name": "Eid Collection",
+      "description": "Festive pieces in silk, organza, and zari for the season of celebration.",
+      "image": "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1200",
+      "href": "/category/stitched-suits"
+    },
+    {
+      "slug": "new-season",
+      "name": "New Season",
+      "description": "The latest prints and embroideries — just arrived.",
+      "image": "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&q=80&w=1200",
+      "href": "/category/new-arrivals"
+    },
+    {
+      "slug": "finishing-touches",
+      "name": "Finishing Touches",
+      "description": "Jewellery, clutches, and khussas to complete your look.",
+      "image": "https://images.unsplash.com/photo-1475180098004-ca77a66827be?auto=format&fit=crop&q=80&w=1200",
+      "href": "/category/accessories"
+    }
+  ],
+  "products": [
+    {
+      "id": "p-lumen-slip",
+      "slug": "lumen-silk-slip-dress",
+      "name": "Lumen Silk Slip Dress",
+      "tagline": "Bias-cut mulberry silk with a barely-there strap.",
+      "description": "Cut on the bias from 19-momme mulberry silk, the Lumen slip falls in a single unbroken line from a scooped neck to a mid-calf hem. Designed to be worn alone or under a coat, it is the house's most requested evening piece.",
+      "details": "Mid-calf length. Adjustable spaghetti straps. Invisible side zip. Fully lined in silk habotai. Made in a limited atelier run.",
+      "materials": "19-momme mulberry silk. Silk habotai lining. Mother-of-pearl adjusters.",
+      "care": "Dry clean only. Store hanging, away from direct light. Steam, never iron.",
+      "category": "stitched-suits",
+      "price": 42800,
+      "compareAtPrice": null,
+      "rating": 4.9,
+      "reviewCount": 64,
+      "isNew": true,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Ivory",
+          "hex": "#F5F0E8",
+          "images": [
+            "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?auto=format&fit=crop&q=80&w=1200"
+          ]
+        },
+        {
+          "name": "Noir",
+          "hex": "#1C1917",
+          "images": [
+            "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-marlowe-linen",
+      "slug": "marlowe-linen-midi-dress",
+      "name": "Marlowe Linen Midi Dress",
+      "tagline": "A square neck and a skirt that moves in heat.",
+      "description": "European flax linen, washed until it feels like a well-loved shirt. The Marlowe has a square neck, cap sleeves, and a softly gathered midi skirt. It is the dress you pack first.",
+      "details": "Midi length. Side-seam pockets. Back keyhole with covered button. Unlined.",
+      "materials": "100% European flax linen, garment-washed.",
+      "care": "Cold machine wash. Hang dry. Embrace the crease.",
+      "category": "stitched-suits",
+      "price": 26800,
+      "compareAtPrice": null,
+      "rating": 4.7,
+      "reviewCount": 41,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Olive",
+          "hex": "#6B705C",
+          "images": [
+            "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&q=80&w=1200"
+          ]
+        },
+        {
+          "name": "Sand",
+          "hex": "#D6C7B0",
+          "images": [
+            "https://images.unsplash.com/photo-1506629082955-511b1aa562c8?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-solace-column",
+      "slug": "solace-column-dress",
+      "name": "Solace Column Dress",
+      "tagline": "A straight line from clavicle to ankle.",
+      "description": "Heavy crepe that holds a column without stiffness. The Solace dress is sleeveless, with a jewel neck and a slit that starts just above the knee. Evening, without costume.",
+      "details": "Ankle length. Back zip. Lined. Internal stay tape at the neck.",
+      "materials": "Stretch viscose crepe. Cupro lining.",
+      "care": "Dry clean. Hang immediately after wearing.",
+      "category": "stitched-suits",
+      "price": 49800,
+      "compareAtPrice": null,
+      "rating": 4.8,
+      "reviewCount": 29,
+      "isNew": false,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Noir",
+          "hex": "#1C1917",
+          "images": [
+            "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-riviera-wrap",
+      "slug": "riviera-wrap-dress",
+      "name": "Riviera Wrap Dress",
+      "tagline": "A true wrap, not a faux one.",
+      "description": "The Riviera ties at the waist and can be worn as loose or as close as you like. Printed in a rust botanical drawn from an archive textile in the Abeera library.",
+      "details": "True wrap with interior tie. Three-quarter sleeve. Midi hem.",
+      "materials": "Silk-cotton voile. Corozo buttons.",
+      "care": "Dry clean recommended. Cool iron on reverse.",
+      "category": "stitched-suits",
+      "price": 31800,
+      "compareAtPrice": null,
+      "rating": 4.6,
+      "reviewCount": 37,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Rust Print",
+          "hex": "#9A3412",
+          "images": [
+            "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-cloud-shirt",
+      "slug": "cloud-cotton-shirt",
+      "name": "Cloud Cotton Shirt",
+      "tagline": "The white shirt, finally finished.",
+      "description": "Egyptian cotton poplin with a hidden placket, a slightly elongated cuff, and a hem that tucks without bulk. The Cloud shirt is the house staple.",
+      "details": "Regular fit. Mother-of-pearl buttons. Single chest pocket, optional to remove.",
+      "materials": "100% extra-long-staple Egyptian cotton.",
+      "care": "Machine wash cold. Iron damp for a crisp finish, or wear rumpled.",
+      "category": "stitched-suits",
+      "price": 18800,
+      "compareAtPrice": null,
+      "rating": 4.8,
+      "reviewCount": 112,
+      "isNew": false,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "White",
+          "hex": "#F8F7F4",
+          "images": [
+            "https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=1200"
+          ]
+        },
+        {
+          "name": "Stone",
+          "hex": "#D6D3D1",
+          "images": [
+            "https://images.unsplash.com/photo-1614252369475-531eba835eb1?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1475180098004-ca77a66827be?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-arden-blouse",
+      "slug": "arden-silk-blouse",
+      "name": "Arden Silk Blouse",
+      "tagline": "A collar that sits. A sleeve that pours.",
+      "description": "The Arden blouse is cut from fluid silk with a covered placket and a collar designed to stand without starch. Champagne in daylight, gold at night.",
+      "details": "Relaxed fit. Covered buttons. French seams.",
+      "materials": "16-momme silk crepe de chine.",
+      "care": "Dry clean. Steam from the reverse.",
+      "category": "stitched-suits",
+      "price": 24800,
+      "compareAtPrice": null,
+      "rating": 4.7,
+      "reviewCount": 48,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Champagne",
+          "hex": "#E8D9C4",
+          "images": [
+            "https://images.unsplash.com/photo-1551803091-e20673f15770?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-north-tank",
+      "slug": "north-knit-tank",
+      "name": "North Knit Tank",
+      "tagline": "Fine merino, no itch, no cling.",
+      "description": "A fine-gauge merino tank with a bound neck and enough weight to sit, not cling. Layer under the Harbor coat or wear alone in late heat.",
+      "details": "Slim fit. Bound neck and armholes. Hip length.",
+      "materials": "100% extrafine merino, 18.5 micron.",
+      "care": "Hand wash cold. Dry flat.",
+      "category": "stitched-suits",
+      "price": 12800,
+      "compareAtPrice": null,
+      "rating": 4.5,
+      "reviewCount": 73,
+      "isNew": false,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Oatmeal",
+          "hex": "#E7DCCB",
+          "images": [
+            "https://images.unsplash.com/photo-1578932750294-f5075e85f44a?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1467043153537-a4fba2cd39ef?auto=format&fit=crop&q=80&w=1200"
+          ]
+        },
+        {
+          "name": "Noir",
+          "hex": "#1C1917",
+          "images": [
+            "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1578932750294-f5075e85f44a?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-field-poplin",
+      "slug": "field-poplin-shirt",
+      "name": "Field Poplin Shirt",
+      "tagline": "A stripe that was drawn, not printed.",
+      "description": "Yarn-dyed stripe on compact poplin. The Field shirt has a camp collar and a slightly cropped, untucked hem — weekend architecture.",
+      "details": "Relaxed. Camp collar. Chest pocket. Straight hem.",
+      "materials": "Yarn-dyed cotton poplin.",
+      "care": "Machine wash cold. Hang dry.",
+      "category": "stitched-suits",
+      "price": 16800,
+      "compareAtPrice": null,
+      "rating": 4.4,
+      "reviewCount": 22,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Ink Stripe",
+          "hex": "#44403C",
+          "images": [
+            "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1603252109303-2751441dd157?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-atelier-trouser",
+      "slug": "atelier-wool-trouser",
+      "name": "Atelier Wool Trouser",
+      "tagline": "A high rise and a break that was measured twice.",
+      "description": "Super 120s wool with a crease that holds. The Atelier trouser has a high rise, a full length, and a side zip so the front stays uninterrupted.",
+      "details": "High rise. Full length. Side zip. Internal waist stay.",
+      "materials": "Super 120s merino wool. Cupro pocketing.",
+      "care": "Dry clean. Hang with clips at the hem overnight.",
+      "category": "stitched-suits",
+      "price": 29800,
+      "compareAtPrice": null,
+      "rating": 4.8,
+      "reviewCount": 56,
+      "isNew": false,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Charcoal",
+          "hex": "#3F3F46",
+          "images": [
+            "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&q=80&w=1200"
+          ]
+        },
+        {
+          "name": "Camel",
+          "hex": "#C4A574",
+          "images": [
+            "https://images.unsplash.com/photo-1475180098004-ca77a66827be?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1548624313-0396c75e4b1a?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-coast-linen",
+      "slug": "coast-wide-leg-linen",
+      "name": "Coast Wide-Leg Linen",
+      "tagline": "Air, then structure.",
+      "description": "Washed linen with a wide leg and a paper-bag waist that can be worn tied or tucked. The Coast pant is for heat, travel, and stone floors.",
+      "details": "High rise. Wide leg. Side pockets. Tie waist.",
+      "materials": "100% European flax linen.",
+      "care": "Cold wash. Hang dry.",
+      "category": "stitched-suits",
+      "price": 21800,
+      "compareAtPrice": null,
+      "rating": 4.6,
+      "reviewCount": 33,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Sand",
+          "hex": "#D6C7B0",
+          "images": [
+            "https://images.unsplash.com/photo-1506629082955-511b1aa562c8?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&q=80&w=1200"
+          ]
+        },
+        {
+          "name": "Olive",
+          "hex": "#6B705C",
+          "images": [
+            "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-studio-denim",
+      "slug": "studio-straight-denim",
+      "name": "Studio Straight Denim",
+      "tagline": "Indigo that fades like a well-kept secret.",
+      "description": "Japanese selvedge denim, rinsed once. A straight leg, a mid rise, and hardware in antique brass. The Studio jean is meant to be worn in, not distressed for you.",
+      "details": "Mid rise. Straight leg. Five pocket. Selvedge outseam.",
+      "materials": "13.5 oz Japanese cotton denim.",
+      "care": "Wash inside out, cold, as rarely as you can bear.",
+      "category": "stitched-suits",
+      "price": 22800,
+      "compareAtPrice": null,
+      "rating": 4.7,
+      "reviewCount": 81,
+      "isNew": false,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Indigo",
+          "hex": "#1E3A5F",
+          "images": [
+            "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1582418702059-97ebafb35d09?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-meridian-skirt",
+      "slug": "meridian-knit-skirt",
+      "name": "Meridian Knit Skirt",
+      "tagline": "A rib that elongates.",
+      "description": "Fine rib merino, midi length, with a hidden elastic that does not bulge. The Meridian skirt is the knit equivalent of a good trouser.",
+      "details": "Midi. Pull-on. Split at the back hem.",
+      "materials": "Extrafine merino rib.",
+      "care": "Hand wash. Dry flat.",
+      "category": "stitched-suits",
+      "price": 17800,
+      "compareAtPrice": null,
+      "rating": 4.5,
+      "reviewCount": 19,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Noir",
+          "hex": "#1C1917",
+          "images": [
+            "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-harbor-coat",
+      "slug": "harbor-wool-coat",
+      "name": "Harbor Wool Coat",
+      "tagline": "Camel, unapologetic.",
+      "description": "Double-faced wool with a notched lapel, a concealed placket, and a weight that makes weather irrelevant. The Harbor coat is the one people remember.",
+      "details": "Knee length. Concealed buttons. Two welt pockets. Half-lined.",
+      "materials": "Double-faced wool-cashmere. Horn buttons.",
+      "care": "Dry clean twice a season, no more. Brush after rain.",
+      "category": "stitched-suits",
+      "price": 89000,
+      "compareAtPrice": null,
+      "rating": 4.9,
+      "reviewCount": 44,
+      "isNew": false,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Camel",
+          "hex": "#C4A574",
+          "images": [
+            "https://images.unsplash.com/photo-1475180098004-ca77a66827be?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1548624313-0396c75e4b1a?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-night-trench",
+      "slug": "night-trench",
+      "name": "Night Trench",
+      "tagline": "A trench without costume.",
+      "description": "Cotton gabardine in stone, with a storm flap that actually sheds water and a belt that sits at the true waist. The Night trench is for cities that surprise you with rain.",
+      "details": "Midi. Storm flap. Gun flap. Belted. Raglan sleeve.",
+      "materials": "Cotton gabardine with water-repellent finish.",
+      "care": "Sponge clean. Dry clean annually.",
+      "category": "stitched-suits",
+      "price": 64000,
+      "compareAtPrice": null,
+      "rating": 4.7,
+      "reviewCount": 31,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Stone",
+          "hex": "#D6D3D1",
+          "images": [
+            "https://images.unsplash.com/photo-1614252369475-531eba835eb1?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1475180098004-ca77a66827be?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-alpine-cardigan",
+      "slug": "alpine-cashmere-cardigan",
+      "name": "Alpine Cashmere Cardigan",
+      "tagline": "A cardigan with a shoulder.",
+      "description": "Grade-A cashmere, fully fashioned, with a slightly boxy body and a rib that holds. The Alpine cardigan replaces a jacket on travel days.",
+      "details": "Boxy. Five-button. Patch pockets. Hip length.",
+      "materials": "100% Grade-A cashmere, 2-ply.",
+      "care": "Hand wash or dry clean. Store folded with cedar.",
+      "category": "stitched-suits",
+      "price": 52000,
+      "compareAtPrice": null,
+      "rating": 4.8,
+      "reviewCount": 27,
+      "isNew": false,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Cream",
+          "hex": "#F3EDE3",
+          "images": [
+            "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1578932750294-f5075e85f44a?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-trace-leather",
+      "slug": "trace-leather-jacket",
+      "name": "Trace Leather Jacket",
+      "tagline": "Lambskin, not costume biker.",
+      "description": "Vegetable-tanned lambskin with a clean zip, a standing collar, and a lining in cupro. The Trace jacket is the leather piece that does not announce itself.",
+      "details": "Hip length. Two-way zip. Welt pockets. Unstructured shoulder.",
+      "materials": "Vegetable-tanned lambskin. Cupro lining.",
+      "care": "Condition twice a year. Keep away from heat.",
+      "category": "stitched-suits",
+      "price": 98000,
+      "compareAtPrice": null,
+      "rating": 4.9,
+      "reviewCount": 18,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Noir",
+          "hex": "#1C1917",
+          "images": [
+            "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-oval-hoops",
+      "slug": "oval-gold-hoops",
+      "name": "Oval Gold Hoops",
+      "tagline": "A hoop that is almost an oval.",
+      "description": "Recycled 18k gold vermeil on a sculptural oval. Light enough for every day, large enough to catch late light.",
+      "details": "45mm. Hinged closure. Sold as a pair.",
+      "materials": "18k gold vermeil over recycled sterling.",
+      "care": "Wipe with a soft cloth. Avoid perfume on the metal.",
+      "category": "accessories",
+      "price": 16800,
+      "compareAtPrice": null,
+      "rating": 4.8,
+      "reviewCount": 90,
+      "isNew": false,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Gold",
+          "hex": "#A16207",
+          "images": [
+            "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "One size"
+      ]
+    },
+    {
+      "id": "p-structured-tote",
+      "slug": "soft-structured-tote",
+      "name": "Soft Structured Tote",
+      "tagline": "Holds a day without looking like luggage.",
+      "description": "Vegetable-tanned leather with a slouch that is engineered, not accidental. The tote fits a 13-inch laptop, a knit, and the book you will actually read.",
+      "details": "Unlined. Magnetic closure. Interior slip pocket. Detachable strap.",
+      "materials": "Vegetable-tanned bovine leather.",
+      "care": "Condition with a neutral cream. Rain spots fade with time.",
+      "category": "accessories",
+      "price": 42000,
+      "compareAtPrice": null,
+      "rating": 4.7,
+      "reviewCount": 52,
+      "isNew": true,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Tan",
+          "hex": "#C4A574",
+          "images": [
+            "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=1200"
+          ]
+        },
+        {
+          "name": "Noir",
+          "hex": "#1C1917",
+          "images": [
+            "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "One size"
+      ]
+    },
+    {
+      "id": "p-sculptural-heel",
+      "slug": "sculptural-heel",
+      "name": "Sculptural Heel",
+      "tagline": "A 70mm heel you can actually walk in.",
+      "description": "Nappa leather with a sculpted almond toe and a 70mm heel that sits under the arch, not behind it. The house shoe for dinners that become walks.",
+      "details": "70mm heel. Leather sole. Padded insole. Made in Italy.",
+      "materials": "Nappa leather. Leather lining and sole.",
+      "care": "Use trees. Polish with a cream, not a liquid.",
+      "category": "accessories",
+      "price": 48000,
+      "compareAtPrice": null,
+      "rating": 4.6,
+      "reviewCount": 24,
+      "isNew": false,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Nude",
+          "hex": "#E8D5C4",
+          "images": [
+            "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "36",
+        "37",
+        "38",
+        "39",
+        "40",
+        "41"
+      ]
+    },
+    {
+      "id": "p-silk-scarf",
+      "slug": "atelier-silk-scarf",
+      "name": "Atelier Silk Scarf",
+      "tagline": "A square from the archive.",
+      "description": "A 90cm silk twill square printed with a drawing from the Abeera textile library — stone, ink, and a single gold line.",
+      "details": "90 × 90 cm. Hand-rolled hem.",
+      "materials": "Silk twill, 14 momme.",
+      "care": "Dry clean. Store rolled, not folded.",
+      "category": "accessories",
+      "price": 14800,
+      "compareAtPrice": null,
+      "rating": 4.5,
+      "reviewCount": 16,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Archive Print",
+          "hex": "#44403C",
+          "images": [
+            "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "One size"
+      ]
+    },
+    {
+      "id": "p-thin-belt",
+      "slug": "thin-leather-belt",
+      "name": "Thin Leather Belt",
+      "tagline": "20 millimetres of chocolate leather.",
+      "description": "A thin belt that belongs on the Atelier trouser or over the Marlowe dress. Brass buckle, unlacquered, meant to dull.",
+      "details": "20mm width. Adjustable. Unlacquered brass.",
+      "materials": "Vegetable-tanned leather. Solid brass.",
+      "care": "The brass will tarnish. Let it.",
+      "category": "accessories",
+      "price": 9800,
+      "compareAtPrice": null,
+      "rating": 4.4,
+      "reviewCount": 38,
+      "isNew": false,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Chocolate",
+          "hex": "#4A3728",
+          "images": [
+            "https://images.unsplash.com/photo-1553062407-98eeb64c6a3c?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1624222247344-550fb60583c2?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "75",
+        "80",
+        "85",
+        "90",
+        "95"
+      ]
+    },
+    {
+      "id": "p-pearl-drop",
+      "slug": "pearl-drop-earrings",
+      "name": "Pearl Drop Earrings",
+      "tagline": "One pearl, slightly baroque.",
+      "description": "Freshwater pearls, unmatched on purpose, suspended from a gold vermeil hook. For evenings when the dress is already doing the work.",
+      "details": "Drop 4cm. Sold as a pair.",
+      "materials": "Freshwater pearl. 18k gold vermeil.",
+      "care": "Keep pearls away from perfume. Wipe after wearing.",
+      "category": "accessories",
+      "price": 18800,
+      "compareAtPrice": null,
+      "rating": 4.9,
+      "reviewCount": 21,
+      "isNew": false,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Pearl",
+          "hex": "#F5F0E8",
+          "images": [
+            "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "One size"
+      ]
+    },
+    {
+      "id": "p-night-sunglasses",
+      "slug": "night-acetate-sunglasses",
+      "name": "Night Acetate Sunglasses",
+      "tagline": "A frame with a quiet lens.",
+      "description": "Italian acetate in deep stone, with grey-green lenses that do not shout. The Night sunglass is the only pair you need to pack.",
+      "details": "Category 3 lens. UV400. Includes case and cloth.",
+      "materials": "Mazzucchelli acetate. CR-39 lenses.",
+      "care": "Rinse with water, never paper.",
+      "category": "accessories",
+      "price": 22800,
+      "compareAtPrice": null,
+      "rating": 4.6,
+      "reviewCount": 14,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Stone",
+          "hex": "#44403C",
+          "images": [
+            "https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "One size"
+      ]
+    },
+    {
+      "id": "p-sunday-sweater",
+      "slug": "sunday-sweater",
+      "name": "The Sunday Sweater",
+      "tagline": "A crewneck with time in it.",
+      "description": "Heavy merino-cashmere with a dropped shoulder and a rib that does not flare. The Sunday sweater is for travel, desks, and late breakfasts.",
+      "details": "Relaxed. Crew neck. Rib hem and cuff.",
+      "materials": "70% merino, 30% cashmere.",
+      "care": "Hand wash. Dry flat.",
+      "category": "stitched-suits",
+      "price": 26800,
+      "compareAtPrice": null,
+      "rating": 4.7,
+      "reviewCount": 67,
+      "isNew": false,
+      "isBestSeller": true,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Oatmeal",
+          "hex": "#E7DCCB",
+          "images": [
+            "https://images.unsplash.com/photo-1578932750294-f5075e85f44a?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-cropped-jacket",
+      "slug": "cropped-tailored-jacket",
+      "name": "Cropped Tailored Jacket",
+      "tagline": "A jacket that ends where the waist begins.",
+      "description": "A cropped, darted jacket in tropical wool. Wear it with the Coast linen or the Studio denim — it is the piece that makes weekend look considered.",
+      "details": "Cropped. Two-button. Flap pockets. Fully lined.",
+      "materials": "Tropical wool. Cupro lining.",
+      "care": "Dry clean. Hang on a shaped hanger.",
+      "category": "stitched-suits",
+      "price": 45800,
+      "compareAtPrice": 58000,
+      "rating": 4.5,
+      "reviewCount": 12,
+      "isNew": false,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Charcoal",
+          "hex": "#3F3F46",
+          "images": [
+            "https://images.unsplash.com/photo-1558171813-4c088753af8f?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-last-blazer",
+      "slug": "last-season-blazer",
+      "name": "Last Season Blazer",
+      "tagline": "The previous cut, still right.",
+      "description": "A longer blazer from last autumn's atelier, in remaining sizes. Same cloth, a slightly longer body. Not a lesser piece — a last look.",
+      "details": "Regular length. Two-button. Ticket pocket.",
+      "materials": "Wool-silk. Cupro lining.",
+      "care": "Dry clean.",
+      "category": "stitched-suits",
+      "price": 32000,
+      "compareAtPrice": 54000,
+      "rating": 4.4,
+      "reviewCount": 9,
+      "isNew": false,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Ink",
+          "hex": "#1C1917",
+          "images": [
+            "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1558171813-4c088753af8f?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    {
+      "id": "p-cotton-tank-sale",
+      "slug": "fine-cotton-tank",
+      "name": "Fine Cotton Tank",
+      "tagline": "A layering tank, now at a quieter price.",
+      "description": "Supima cotton jersey with a bound neck. Intended as a layer; often worn alone. Remaining colours from the winter run.",
+      "details": "Slim. Bound neck. Hip length.",
+      "materials": "100% Supima cotton jersey.",
+      "care": "Machine wash cold.",
+      "category": "stitched-suits",
+      "price": 4800,
+      "compareAtPrice": 7800,
+      "rating": 4.3,
+      "reviewCount": 40,
+      "isNew": false,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Ivory",
+          "hex": "#F5F0E8",
+          "images": [
+            "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-pleated-midi",
+      "slug": "pleated-midi-skirt",
+      "name": "Pleated Midi Skirt",
+      "tagline": "Pleats that remember.",
+      "description": "Heat-set pleats in a fluid viscose that returns after sitting. The midi skirt for days that begin at a desk and end somewhere with a stone floor.",
+      "details": "Midi. Side zip. Partial lining.",
+      "materials": "Viscose twill. Cotton voile lining.",
+      "care": "Hang after washing. Do not crush.",
+      "category": "stitched-suits",
+      "price": 19800,
+      "compareAtPrice": null,
+      "rating": 4.6,
+      "reviewCount": 28,
+      "isNew": true,
+      "isBestSeller": false,
+      "soldOut": false,
+      "colors": [
+        {
+          "name": "Noir",
+          "hex": "#1C1917",
+          "images": [
+            "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "p-cashmere-beanie",
+      "slug": "cashmere-beanie",
+      "name": "Cashmere Beanie",
+      "tagline": "A beanie that does not look like a beanie.",
+      "description": "Fine-rib cashmere, no cuff fold, no logo. For travel days and the first cold morning.",
+      "details": "Fine rib. Uncuffed. One size with give.",
+      "materials": "100% cashmere.",
+      "care": "Hand wash. Dry flat.",
+      "category": "accessories",
+      "price": 8800,
+      "compareAtPrice": 12000,
+      "rating": 4.5,
+      "reviewCount": 33,
+      "isNew": false,
+      "isBestSeller": false,
+      "soldOut": true,
+      "colors": [
+        {
+          "name": "Camel",
+          "hex": "#C4A574",
+          "images": [
+            "https://images.unsplash.com/photo-1578932750294-f5075e85f44a?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1548624313-0396c75e4b1a?auto=format&fit=crop&q=80&w=1200"
+          ]
+        }
+      ],
+      "sizes": [
+        "One size"
+      ]
+    }
+  ]
+}

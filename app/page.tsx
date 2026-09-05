@@ -11,8 +11,8 @@ import { ProductRail } from "@/components/sections/product-rail";
 import { Testimonials } from "@/components/sections/testimonials";
 import { getBestSellers } from "@/lib/catalog";
 
-export default function HomePage() {
-  const bestsellers = getBestSellers(4);
+export default async function HomePage() {
+  const bestsellers = await getBestSellers(4);
 
   return (
     <>

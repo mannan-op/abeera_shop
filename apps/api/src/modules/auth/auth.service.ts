@@ -46,7 +46,7 @@ export class AuthService {
   async refresh(refreshToken: string) {
     try {
       const payload = this.jwt.verify<JwtPayload>(refreshToken, {
-        secret: this.config.get("JWT_REFRESH_SECRET", "dev-refresh-secret"),
+        secret: this.requireSecret("JWT_REFRESH_SECRET"),
       });
 
       const blacklisted = await this.redis.get(`bl:${refreshToken}`);
@@ -65,16 +65,29 @@ export class AuthService {
     await this.redis.set(`bl:${refreshToken}`, "1", 7 * 24 * 60 * 60);
   }
 
+  private requireSecret(key: "JWT_ACCESS_SECRET" | "JWT_REFRESH_SECRET") {
+    const value = this.config.get<string>(key);
+    if (!value) {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error(`${key} is required in production`);
+      }
+      return key === "JWT_ACCESS_SECRET"
+        ? "dev-access-secret-local-only"
+        : "dev-refresh-secret-local-only";
+    }
+    return value;
+  }
+
   private async generateTokens(user: { id: string; email: string; role: string }) {
     const payload: JwtPayload = { sub: user.id, email: user.email, role: user.role };
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(payload, {
-        secret: this.config.get("JWT_ACCESS_SECRET", "dev-access-secret"),
+        secret: this.requireSecret("JWT_ACCESS_SECRET"),
         expiresIn: "15m",
       }),
       this.jwt.signAsync(payload, {
-        secret: this.config.get("JWT_REFRESH_SECRET", "dev-refresh-secret"),
+        secret: this.requireSecret("JWT_REFRESH_SECRET"),
         expiresIn: "7d",
       }),
     ]);

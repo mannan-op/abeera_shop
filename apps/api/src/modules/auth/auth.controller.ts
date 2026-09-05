@@ -28,6 +28,7 @@ export class AuthController {
     return this.auth.refresh(body.refreshToken);
   }
 
+  @Public()
   @Post("logout")
   @HttpCode(HttpStatus.OK)
   logout(@Body() body: { refreshToken: string }) {

@@ -19,9 +19,17 @@ export class UsersController {
   @Post("me/addresses")
   createAddress(
     @CurrentUser("id") userId: string,
-    @Body() body: {
-      label: string; name: string; line1: string; line2?: string;
-      city: string; region: string; postalCode: string; phone: string;
+    @Body()
+    body: {
+      label: string;
+      name: string;
+      line1: string;
+      line2?: string;
+      city: string;
+      region: string;
+      postalCode: string;
+      country?: string;
+      phone: string;
     },
   ) {
     return this.users.createAddress(userId, body);

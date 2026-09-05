@@ -1,15 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { placeOrder } from "@/lib/auth/customer-actions";
 import { shippingMethods } from "@/lib/catalog";
 import { useShop } from "@/lib/store/shop";
 import { formatPrice } from "@/lib/utils";
@@ -18,14 +21,14 @@ const schema = z.object({
   email: z.string().email("Enter a valid email"),
   firstName: z.string().min(1, "Enter your first name"),
   lastName: z.string().min(1, "Enter your last name"),
+  phone: z.string().min(10, "Enter a valid phone number"),
   line1: z.string().min(1, "Enter an address"),
   city: z.string().min(1, "Enter a city"),
-  region: z.string().min(1, "Enter a region"),
+  region: z.string().min(1, "Enter a province"),
   postalCode: z.string().min(1, "Enter a postal code"),
   country: z.string().min(1, "Enter a country"),
   shipping: z.enum(["standard", "express", "atelier"]),
-  payment: z.enum(["card", "paypal"]),
-  card: z.string().optional(),
+  payment: z.enum(["COD", "JAZZCASH", "EASYPAISA"]),
   discount: z.string().optional(),
 });
 
@@ -43,13 +46,14 @@ export function CheckoutForm() {
       email: "",
       firstName: "",
       lastName: "",
+      phone: "",
       line1: "",
       city: "",
       region: "",
       postalCode: "",
-      country: "France",
+      country: "Pakistan",
       shipping: "standard",
-      payment: "card",
+      payment: "COD",
       discount: "",
     },
     mode: "onBlur",
@@ -59,24 +63,38 @@ export function CheckoutForm() {
   const shipping = shippingMethods.find((method) => method.id === shippingId) ?? shippingMethods[0];
   const discountCode = form.watch("discount");
   const discount = discountCode?.toUpperCase() === "ABEERA10" ? Math.round(cartSubtotal * 0.1) : 0;
-  const shippingPrice = cartSubtotal >= 40000 && shippingId === "standard" ? 0 : shipping.price;
-  const tax = Math.round((cartSubtotal - discount) * 0.08);
-  const total = cartSubtotal - discount + shippingPrice + tax;
+  const shippingPrice = cartSubtotal >= 500000 && shippingId === "standard" ? 0 : shipping.price;
+  const total = cartSubtotal - discount + shippingPrice;
 
   async function onSubmit(values: Values) {
     setErrorSummary([]);
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    const order = {
-      number: `AB-${Math.floor(1800 + Math.random() * 800)}`,
+    const result = await placeOrder({
       email: values.email,
+      firstName: values.firstName,
+      lastName: values.lastName,
+      phone: values.phone,
+      line1: values.line1,
+      city: values.city,
+      region: values.region,
+      postalCode: values.postalCode,
+      country: values.country,
+      paymentMethod: values.payment,
       items: cart,
-      total,
-      shipping: shipping.name,
-      address: `${values.line1}, ${values.city}`,
-      estimatedDelivery:
-        shippingId === "express" ? "2–3 business days" : "4–7 business days",
-    };
-    window.sessionStorage.setItem("abeera:last-order", JSON.stringify(order));
+    });
+
+    if (!result.ok) {
+      if (result.code === "UNAUTH") {
+        toast.error(result.error);
+        router.push(`/login?next=${encodeURIComponent("/checkout")}`);
+        return;
+      }
+      setErrorSummary([result.error]);
+      summaryRef.current?.focus();
+      toast.error(result.error);
+      return;
+    }
+
+    window.sessionStorage.setItem("abeera:last-order", JSON.stringify(result.order));
     clearCart();
     router.push("/order-confirmation");
   }
@@ -126,16 +144,35 @@ export function CheckoutForm() {
           </div>
         ) : null}
 
+        <p className="text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link href="/login?next=/checkout" className="underline">
+            Sign in
+          </Link>{" "}
+          before placing your order.
+        </p>
+
         <section>
           <h2 className="font-serif text-2xl">Contact</h2>
-          <div className="mt-4">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" className="mt-2" autoComplete="email" {...form.register("email")} />
-            {form.formState.errors.email ? (
-              <p className="mt-1 text-sm text-destructive" role="alert">
-                {form.formState.errors.email.message}
-              </p>
-            ) : null}
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" className="mt-2" autoComplete="email" {...form.register("email")} />
+              {form.formState.errors.email ? (
+                <p className="mt-1 text-sm text-destructive" role="alert">
+                  {form.formState.errors.email.message}
+                </p>
+              ) : null}
+            </div>
+            <div className="sm:col-span-2">
+              <Label htmlFor="phone">Phone</Label>
+              <Input id="phone" className="mt-2" autoComplete="tel" {...form.register("phone")} />
+              {form.formState.errors.phone ? (
+                <p className="mt-1 text-sm text-destructive" role="alert">
+                  {form.formState.errors.phone.message}
+                </p>
+              ) : null}
+            </div>
           </div>
         </section>
 
@@ -148,7 +185,7 @@ export function CheckoutForm() {
               <Field label="Address" id="line1" autoComplete="address-line1" form={form} />
             </div>
             <Field label="City" id="city" autoComplete="address-level2" form={form} />
-            <Field label="Region" id="region" autoComplete="address-level1" form={form} />
+            <Field label="Province" id="region" autoComplete="address-level1" form={form} />
             <Field label="Postal code" id="postalCode" autoComplete="postal-code" form={form} />
             <Field label="Country" id="country" autoComplete="country-name" form={form} />
           </div>
@@ -171,7 +208,7 @@ export function CheckoutForm() {
                   </span>
                 </span>
                 <span className="text-sm">
-                  {cartSubtotal >= 40000 && method.id === "standard"
+                  {cartSubtotal >= 500000 && method.id === "standard"
                     ? "Complimentary"
                     : method.price === 0
                       ? "Complimentary"
@@ -190,23 +227,21 @@ export function CheckoutForm() {
             onValueChange={(value) => form.setValue("payment", value as Values["payment"])}
           >
             <label className="flex items-center gap-3 border border-border px-4 py-3">
-              <RadioGroupItem value="card" />
-              Card
+              <RadioGroupItem value="COD" />
+              Cash on delivery
             </label>
             <label className="flex items-center gap-3 border border-border px-4 py-3">
-              <RadioGroupItem value="paypal" />
-              PayPal
+              <RadioGroupItem value="JAZZCASH" />
+              JazzCash
+            </label>
+            <label className="flex items-center gap-3 border border-border px-4 py-3">
+              <RadioGroupItem value="EASYPAISA" />
+              EasyPaisa
             </label>
           </RadioGroup>
-          {form.watch("payment") === "card" ? (
-            <div className="mt-4">
-              <Label htmlFor="card">Card number</Label>
-              <Input id="card" className="mt-2" inputMode="numeric" placeholder="•••• •••• •••• ••••" />
-              <p className="mt-2 text-xs text-muted-foreground">
-                Demo checkout — no payment is processed.
-              </p>
-            </div>
-          ) : null}
+          <p className="mt-2 text-xs text-muted-foreground">
+            Online wallets redirect after order creation when merchant keys are configured.
+          </p>
         </section>
       </div>
 
@@ -240,10 +275,6 @@ export function CheckoutForm() {
           <div className="flex justify-between">
             <dt>Shipping</dt>
             <dd>{shippingPrice === 0 ? "Complimentary" : formatPrice(shippingPrice)}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt>Tax</dt>
-            <dd>{formatPrice(tax)}</dd>
           </div>
           <div className="flex justify-between border-t border-border pt-3 font-medium">
             <dt>Total</dt>

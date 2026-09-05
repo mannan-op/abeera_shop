@@ -14,11 +14,11 @@ function all(value: string | string[] | undefined) {
   return Array.isArray(value) ? value : [value];
 }
 
-export function filtersFromSearch(
+export async function filtersFromSearch(
   searchParams: Record<string, string | string[] | undefined>,
   category?: CategorySlug,
-): ProductFilters {
-  const bounds = getCatalogFacets(category);
+): Promise<ProductFilters> {
+  const bounds = await getCatalogFacets(category);
   return {
     category,
     query: first(searchParams.q),
@@ -36,41 +36,41 @@ export function filtersFromSearch(
   };
 }
 
-export function CatalogView({
+export async function CatalogView({
   searchParams,
   category,
 }: {
   searchParams: Record<string, string | string[] | undefined>;
   category?: CategorySlug;
 }) {
-  const filters = filtersFromSearch(searchParams, category);
-  const result = listProducts(filters);
-  const options = getCatalogFacets(category);
+  const filters = await filtersFromSearch(searchParams, category);
+  const result = await listProducts(filters);
+  const options = await getCatalogFacets(category);
 
   return (
     <div>
       <CatalogToolbar total={result.total} options={options} />
       <ProductGrid products={result.items} />
-        {result.pageCount > 1 ? (
-          <div className="mt-12 flex justify-center gap-2">
-            {Array.from({ length: result.pageCount }, (_, index) => {
-              const page = index + 1;
-              const params = new URLSearchParams();
-              Object.entries(searchParams).forEach(([key, value]) => {
-                if (key === "page") return;
-                (Array.isArray(value) ? value : [value]).forEach((entry) => {
-                  if (entry) params.append(key, entry);
-                });
+      {result.pageCount > 1 ? (
+        <div className="mt-12 flex justify-center gap-2">
+          {Array.from({ length: result.pageCount }, (_, index) => {
+            const page = index + 1;
+            const params = new URLSearchParams();
+            Object.entries(searchParams).forEach(([key, value]) => {
+              if (key === "page") return;
+              (Array.isArray(value) ? value : [value]).forEach((entry) => {
+                if (entry) params.append(key, entry);
               });
-              params.set("page", String(page));
-              return (
-                <Button key={page} asChild variant={page === result.page ? "primary" : "outline"} size="icon">
-                  <Link href={`?${params.toString()}`}>{page}</Link>
-                </Button>
-              );
-            })}
-          </div>
-        ) : null}
+            });
+            params.set("page", String(page));
+            return (
+              <Button key={page} asChild variant={page === result.page ? "primary" : "outline"} size="icon">
+                <Link href={`?${params.toString()}`}>{page}</Link>
+              </Button>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }

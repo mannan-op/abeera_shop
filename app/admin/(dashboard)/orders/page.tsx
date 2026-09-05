@@ -1,22 +1,46 @@
 import Link from "next/link";
 
-import { Badge } from "@/components/ui/badge";
-import { demoOrders } from "@/lib/catalog/content";
+import { getAccessToken } from "@/lib/admin/auth";
+import { apiClient } from "@/lib/api/client";
 import { formatPrice } from "@/lib/utils";
 
 const statusColor: Record<string, string> = {
-  processing: "bg-yellow-100 text-yellow-800",
-  shipped: "bg-blue-100 text-blue-800",
-  delivered: "bg-emerald-100 text-emerald-800",
+  PENDING: "bg-yellow-100 text-yellow-800",
+  CONFIRMED: "bg-blue-100 text-blue-800",
+  SHIPPED: "bg-blue-100 text-blue-800",
+  DELIVERED: "bg-emerald-100 text-emerald-800",
+  CANCELLED: "bg-red-100 text-red-800",
 };
 
-export default function AdminOrdersPage() {
+type OrderRow = {
+  id: string;
+  orderNumber: string;
+  createdAt: string;
+  status: string;
+  address?: { name: string };
+  items: unknown[];
+  total: number;
+};
+
+export default async function AdminOrdersPage() {
+  const token = await getAccessToken();
+  let orders: OrderRow[] = [];
+  if (token) {
+    try {
+      const result = await apiClient.get<{ items: OrderRow[] }>("/admin/orders", {
+        token,
+        cache: "no-store",
+      });
+      orders = result.items;
+    } catch {
+      orders = [];
+    }
+  }
+
   return (
     <div>
       <h1 className="font-serif text-3xl">Orders</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {demoOrders.length} orders
-      </p>
+      <p className="mt-1 text-sm text-muted-foreground">{orders.length} orders</p>
 
       <div className="mt-8 overflow-hidden rounded-xl border border-border bg-[#faf7f2]">
         <table className="w-full text-sm">
@@ -31,18 +55,18 @@ export default function AdminOrdersPage() {
             </tr>
           </thead>
           <tbody>
-            {demoOrders.map((order) => (
+            {orders.map((order) => (
               <tr key={order.id} className="border-b border-border/50 last:border-0">
                 <td className="px-4 py-3">
                   <Link
                     href={`/admin/orders/${order.id}`}
                     className="font-medium underline-offset-4 hover:underline"
                   >
-                    {order.number}
+                    {order.orderNumber}
                   </Link>
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {new Date(order.placedAt).toLocaleDateString("en-PK", {
+                  {new Date(order.createdAt).toLocaleDateString("en-PK", {
                     day: "numeric",
                     month: "short",
                     year: "numeric",
@@ -50,16 +74,23 @@ export default function AdminOrdersPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs capitalize ${statusColor[order.status] ?? ""}`}
+                    className={`inline-flex rounded-full px-2 py-0.5 text-xs capitalize ${statusColor[order.status] ?? "bg-muted"}`}
                   >
-                    {order.status}
+                    {order.status.toLowerCase()}
                   </span>
                 </td>
-                <td className="px-4 py-3">{order.address.name}</td>
+                <td className="px-4 py-3">{order.address?.name ?? "—"}</td>
                 <td className="px-4 py-3">{order.items.length}</td>
                 <td className="px-4 py-3 text-right">{formatPrice(order.total)}</td>
               </tr>
             ))}
+            {orders.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                  No orders yet
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </div>

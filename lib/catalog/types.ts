@@ -13,6 +13,14 @@ export type ProductColor = {
   images: [string, string, ...string[]];
 };
 
+export type ProductVariantRef = {
+  id: string;
+  color: string;
+  size: string;
+  price: number;
+  stock: number;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -32,6 +40,7 @@ export type Product = {
   colors: ProductColor[];
   sizes: string[];
   soldOut?: boolean;
+  variants?: ProductVariantRef[];
 };
 
 export type Category = {
@@ -69,6 +78,7 @@ export type Testimonial = {
 
 export type CartItem = {
   productId: string;
+  variantId?: string;
   slug: string;
   name: string;
   image: string;

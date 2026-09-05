@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+import { Injectable, BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as crypto from "crypto";
 
@@ -19,18 +19,28 @@ export class PaymentsService {
     if (!order || !order.payment) throw new BadRequestException("Order not found");
     if (order.payment.method !== "JAZZCASH") throw new BadRequestException("Not a JazzCash order");
 
-    const merchantId = this.config.get("JAZZCASH_MERCHANT_ID", "");
-    const password = this.config.get("JAZZCASH_PASSWORD", "");
-    const salt = this.config.get("JAZZCASH_INTEGRITY_SALT", "");
+    const merchantId = this.config.get<string>("JAZZCASH_MERCHANT_ID", "");
+    const password = this.config.get<string>("JAZZCASH_PASSWORD", "");
+    const salt = this.config.get<string>("JAZZCASH_INTEGRITY_SALT", "");
 
     const txnRefNo = `T${Date.now()}`;
     const amount = String(order.total);
     const dateTime = new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
-    const expiryDateTime = new Date(Date.now() + 3600000).toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
+    const expiryDateTime = new Date(Date.now() + 3600000)
+      .toISOString()
+      .replace(/[-:.TZ]/g, "")
+      .slice(0, 14);
 
     const hashString = [
-      salt, amount, "PKR", dateTime, expiryDateTime,
-      merchantId, password, "", txnRefNo,
+      salt,
+      amount,
+      "PKR",
+      dateTime,
+      expiryDateTime,
+      merchantId,
+      password,
+      "",
+      txnRefNo,
     ].join("&");
 
     const secureHash = crypto.createHmac("sha256", salt).update(hashString).digest("hex");
@@ -83,9 +93,51 @@ export class PaymentsService {
     };
   }
 
+  verifyJazzCashHash(body: Record<string, string>) {
+    const salt = this.config.get<string>("JAZZCASH_INTEGRITY_SALT", "");
+    const received = (body.pp_SecureHash ?? "").toLowerCase();
+
+    if (!salt) {
+      if (process.env.NODE_ENV === "production") return false;
+      // Local only: allow unsigned payloads; reject any provided hash without a salt
+      return !received;
+    }
+
+    if (!received) return false;
+
+    const sortedKeys = Object.keys(body)
+      .filter((key) => key !== "pp_SecureHash" && body[key] !== undefined && body[key] !== "")
+      .sort();
+
+    const payload = [salt, ...sortedKeys.map((key) => body[key])].join("&");
+    const expected = crypto.createHmac("sha256", salt).update(payload).digest("hex").toLowerCase();
+    if (expected.length !== received.length) return false;
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(received));
+  }
+
   async handleWebhook(body: Record<string, string>) {
     const txnRefNo = body.pp_TxnRefNo ?? body.transactionId;
     if (!txnRefNo) throw new BadRequestException("Missing transaction reference");
+
+    if (body.pp_SecureHash || body.pp_TxnRefNo) {
+      const valid = this.verifyJazzCashHash(body);
+      if (!valid) throw new UnauthorizedException("Invalid payment signature");
+    } else if (body.transactionId && body.hash) {
+      const hashKey = this.config.get<string>("EASYPAISA_HASH_KEY", "");
+      if (hashKey) {
+        const expected = crypto
+          .createHmac("sha256", hashKey)
+          .update(`${body.transactionId}${body.amount ?? ""}${body.responseCode ?? ""}`)
+          .digest("hex");
+        if (expected.toLowerCase() !== body.hash.toLowerCase()) {
+          throw new UnauthorizedException("Invalid EasyPaisa signature");
+        }
+      } else if (process.env.NODE_ENV === "production") {
+        throw new UnauthorizedException("Payment hash key not configured");
+      }
+    } else if (process.env.NODE_ENV === "production") {
+      throw new BadRequestException("Unsigned webhook rejected in production");
+    }
 
     const payment = await this.prisma.payment.findFirst({
       where: { transactionId: txnRefNo },

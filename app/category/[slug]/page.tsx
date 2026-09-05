@@ -9,7 +9,8 @@ import type { CategorySlug } from "@/lib/catalog/types";
 import type { Metadata } from "next";
 
 export async function generateStaticParams() {
-  return getAllCategorySlugs().map((slug) => ({ slug }));
+  const slugs = await getAllCategorySlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -18,7 +19,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategory(slug);
+  const category = await getCategory(slug);
   if (!category) return { title: "Category" };
   return {
     title: category.name,
@@ -35,7 +36,7 @@ export default async function CategoryPage({
 }) {
   const { slug } = await params;
   const query = await searchParams;
-  const category = getCategory(slug);
+  const category = await getCategory(slug);
   if (!category) notFound();
 
   return (

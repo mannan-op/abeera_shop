@@ -20,12 +20,13 @@ export default function AdminLoginPage() {
 
         <form action={formAction} className="mt-8 space-y-4">
           <div>
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="username"
-              name="username"
-              type="text"
+              id="email"
+              name="email"
+              type="email"
               autoComplete="username"
+              defaultValue="admin@abeera.pk"
               required
               className="mt-1.5"
             />

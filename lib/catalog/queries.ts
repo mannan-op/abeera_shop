@@ -1,4 +1,4 @@
-import { categories, collections, products } from "@/lib/catalog/products";
+import { collections, products as memoryProducts } from "@/lib/catalog/products";
 import type {
   Category,
   CategorySlug,
@@ -6,52 +6,186 @@ import type {
   ProductFilters,
   SortKey,
 } from "@/lib/catalog/types";
+import { apiClient, ApiError } from "@/lib/api/client";
+import {
+  mapApiCategory,
+  mapApiListItem,
+  mapApiProduct,
+  type ApiProductDetail,
+  type ApiProductListItem,
+} from "@/lib/api/mappers";
 
 const PAGE_SIZE = 12;
+const USE_API = process.env.NEXT_PUBLIC_USE_API !== "false";
 
-export function getCategories(): Category[] {
-  return categories;
+type Paginated<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages?: number;
+  pageCount?: number;
+};
+
+async function apiAvailable() {
+  if (!USE_API) return false;
+  try {
+    await apiClient.get("/health", { cache: "no-store" });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-export function getCategory(slug: string): Category | undefined {
-  return categories.find((category) => category.slug === slug);
+function memoryCategories(): Category[] {
+  return [
+    {
+      slug: "new-arrivals",
+      name: "New Arrivals",
+      description: "Fresh designs for the season.",
+      image: "",
+      editorial: "Just landed.",
+    },
+    {
+      slug: "stitched-suits",
+      name: "Stitched Suits",
+      description: "Ready-to-wear suits for every occasion.",
+      image: "",
+      editorial: "Crafted & ready to wear.",
+    },
+    {
+      slug: "accessories",
+      name: "Accessories",
+      description: "Jewellery, clutches, and finishing pieces.",
+      image: "",
+      editorial: "The details.",
+    },
+    {
+      slug: "sale",
+      name: "Sale",
+      description: "Previous-season pieces at reduced prices.",
+      image: "",
+      editorial: "While it lasts.",
+    },
+  ];
+}
+
+export async function getCategories(): Promise<Category[]> {
+  try {
+    if (!(await apiAvailable())) return memoryCategories();
+    const rows = await apiClient.get<
+      { id: string; slug: string; name: string; description: string; image: string | null; sortOrder: number }[]
+    >("/categories");
+    const mapped = rows.map(mapApiCategory);
+    const extras = memoryCategories().filter(
+      (c) => c.slug === "new-arrivals" || c.slug === "sale",
+    );
+    return [...extras, ...mapped.filter((c) => c.slug !== "new-arrivals" && c.slug !== "sale")];
+  } catch {
+    return memoryCategories();
+  }
+}
+
+export async function getCategory(slug: string): Promise<Category | undefined> {
+  const all = await getCategories();
+  return all.find((category) => category.slug === slug);
 }
 
 export function getCollections() {
   return collections;
 }
 
-export function getProduct(slug: string): Product | undefined {
-  return products.find((product) => product.slug === slug);
+export async function getProduct(slug: string): Promise<Product | undefined> {
+  try {
+    if (await apiAvailable()) {
+      const product = await apiClient.get<ApiProductDetail>(`/products/${slug}`);
+      return mapApiProduct(product);
+    }
+  } catch (error) {
+    if (!(error instanceof ApiError && error.status === 404)) {
+      // fall through to memory
+    }
+  }
+  return memoryProducts.find((product) => product.slug === slug);
 }
 
-export function getProductById(id: string): Product | undefined {
-  return products.find((product) => product.id === id);
+export async function getProductById(id: string): Promise<Product | undefined> {
+  try {
+    if (await apiAvailable()) {
+      const result = await apiClient.get<Paginated<ApiProductListItem>>(
+        `/products?pageSize=100`,
+      );
+      const match = result.items.find((item) => item.id === id);
+      if (match) {
+        const full = await apiClient.get<ApiProductDetail>(`/products/${match.slug}`);
+        return mapApiProduct(full);
+      }
+    }
+  } catch {
+    // fall through
+  }
+  return getProductByIdSync(id);
 }
 
-export function getAllProductSlugs() {
-  return products.map((product) => product.slug);
+/** Sync lookup for client components (wishlist, etc.) */
+export function getProductByIdSync(id: string): Product | undefined {
+  return memoryProducts.find((product) => product.id === id);
 }
 
-export function getAllCategorySlugs(): CategorySlug[] {
-  return categories.map((category) => category.slug);
+export async function getAllProductSlugs() {
+  try {
+    if (await apiAvailable()) {
+      const result = await apiClient.get<Paginated<ApiProductListItem>>(
+        `/products?pageSize=100`,
+      );
+      return result.items.map((item) => item.slug);
+    }
+  } catch {
+    // fall through
+  }
+  return memoryProducts.map((product) => product.slug);
 }
 
-export function getPriceBounds(subset: Product[] = products) {
+export async function getAllCategorySlugs(): Promise<CategorySlug[]> {
+  const cats = await getCategories();
+  return cats.map((category) => category.slug);
+}
+
+export function getPriceBounds(subset: Product[] = memoryProducts) {
   const prices = subset.map((product) => product.price);
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }
 
-export function getCatalogFacets(category?: CategorySlug) {
-  const subset = products.filter((product) => inCategory(product, category));
-  const source = subset.length > 0 ? subset : products;
+export async function getCatalogFacets(category?: CategorySlug) {
+  try {
+    if (await apiAvailable()) {
+      const params = new URLSearchParams();
+      if (category && category !== "new-arrivals" && category !== "sale") {
+        params.set("category", category);
+      }
+      const filters = await apiClient.get<{ sizes: string[]; min: number; max: number }>(
+        `/products/filters?${params.toString()}`,
+      );
+      return {
+        colors: [] as { name: string; hex: string }[],
+        sizes: filters.sizes,
+        min: filters.min,
+        max: filters.max,
+      };
+    }
+  } catch {
+    // fall through
+  }
+
+  const subset = memoryProducts.filter((product) => inCategory(product, category));
+  const source = subset.length > 0 ? subset : memoryProducts;
   return {
     ...getFilterOptions(source),
     ...getPriceBounds(source),
   };
 }
 
-export function getFilterOptions(subset: Product[] = products) {
+export function getFilterOptions(subset: Product[] = memoryProducts) {
   const colors = new Map<string, string>();
   const sizes = new Set<string>();
   for (const product of subset) {
@@ -109,7 +243,7 @@ function sortProducts(list: Product[], sort: SortKey = "featured") {
   }
 }
 
-export function listProducts(filters: ProductFilters = {}) {
+function listProductsMemory(filters: ProductFilters = {}) {
   const {
     category,
     query,
@@ -123,7 +257,7 @@ export function listProducts(filters: ProductFilters = {}) {
     pageSize = PAGE_SIZE,
   } = filters;
 
-  let list = products.filter((product) => inCategory(product, category));
+  let list = memoryProducts.filter((product) => inCategory(product, category));
   list = list.filter((product) => matchesQuery(product, query));
 
   if (colors?.length) {
@@ -163,33 +297,104 @@ export function listProducts(filters: ProductFilters = {}) {
   };
 }
 
-export function getNewArrivals(limit = 8) {
-  return products.filter((product) => product.isNew).slice(0, limit);
+export async function listProducts(filters: ProductFilters = {}) {
+  const {
+    category,
+    query,
+    sizes,
+    availability = "all",
+    minPrice,
+    maxPrice,
+    sort = "featured",
+    page = 1,
+    pageSize = PAGE_SIZE,
+  } = filters;
+
+  try {
+    if (await apiAvailable()) {
+      const params = new URLSearchParams();
+      if (category === "new-arrivals") {
+        // API filters by category slug; fetch and filter client-side for virtual cats
+      } else if (category === "sale") {
+        // handled after fetch
+      } else if (category) {
+        params.set("category", category);
+      }
+      if (sizes?.[0]) params.set("size", sizes[0]);
+      if (minPrice !== undefined) params.set("minPrice", String(minPrice));
+      if (maxPrice !== undefined) params.set("maxPrice", String(maxPrice));
+      if (sort) params.set("sort", sort);
+      params.set("page", String(page));
+      params.set("pageSize", String(pageSize));
+      if (query) params.set("search", query);
+
+      const result = await apiClient.get<Paginated<ApiProductListItem>>(
+        `/products?${params.toString()}`,
+      );
+
+      let items = result.items.map(mapApiListItem);
+      if (category === "new-arrivals") {
+        items = items.filter((p) => p.isNew);
+      }
+      if (category === "sale" || availability === "sale") {
+        items = items.filter((p) => Boolean(p.compareAtPrice));
+      }
+      if (availability === "in-stock") {
+        items = items.filter((p) => !p.soldOut);
+      }
+
+      return {
+        items,
+        total: result.total,
+        page: result.page,
+        pageSize: result.pageSize,
+        pageCount: result.totalPages ?? Math.max(1, Math.ceil(result.total / result.pageSize)),
+      };
+    }
+  } catch {
+    // fall through
+  }
+
+  return listProductsMemory(filters);
 }
 
-export function getBestSellers(limit = 8) {
-  return products.filter((product) => product.isBestSeller).slice(0, limit);
+export async function getNewArrivals(limit = 8) {
+  const result = await listProducts({ category: "new-arrivals", pageSize: limit });
+  return result.items;
 }
 
-export function getRelated(product: Product, limit = 4) {
-  return products
-    .filter(
-      (candidate) =>
-        candidate.id !== product.id &&
-        (candidate.category === product.category || candidate.isBestSeller),
-    )
-    .slice(0, limit);
+export async function getBestSellers(limit = 8) {
+  try {
+    if (await apiAvailable()) {
+      const result = await apiClient.get<Paginated<ApiProductListItem>>(
+        `/products?sort=featured&pageSize=${limit}`,
+      );
+      return result.items.map(mapApiListItem).filter((p) => p.isBestSeller).slice(0, limit);
+    }
+  } catch {
+    // fall through
+  }
+  return memoryProducts.filter((product) => product.isBestSeller).slice(0, limit);
 }
 
-export function searchSuggest(query: string, limit = 6) {
+export async function getRelated(product: Product, limit = 4) {
+  const result = await listProducts({
+    category: product.category,
+    pageSize: limit + 4,
+  });
+  return result.items.filter((candidate) => candidate.id !== product.id).slice(0, limit);
+}
+
+export async function searchSuggest(query: string, limit = 6) {
   if (!query.trim()) return [];
-  return listProducts({ query, pageSize: limit, sort: "featured" }).items;
+  const result = await listProducts({ query, pageSize: limit, sort: "featured" });
+  return result.items;
 }
 
 export const popularSearches = [
-  "silk dress",
-  "camel coat",
-  "linen",
-  "gold hoops",
-  "wool trouser",
+  "stitched suit",
+  "embroidered",
+  "formal",
+  "lawn",
+  "dupatta",
 ];

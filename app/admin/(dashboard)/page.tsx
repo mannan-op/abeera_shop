@@ -1,30 +1,27 @@
-import { BarChart3Icon, BoxIcon, DollarSignIcon, ShoppingCartIcon } from "lucide-react";
-
 import { getAdminStats } from "@/lib/admin/actions";
-import { demoOrders } from "@/lib/catalog/content";
 import { formatPrice } from "@/lib/utils";
+import { BoxIcon, DollarSignIcon, ShoppingCartIcon } from "lucide-react";
+
+type RecentOrder = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  total: number;
+  items: unknown[];
+};
 
 export default async function AdminDashboard() {
   const stats = await getAdminStats();
+  const recentOrders = (stats.recentOrders ?? []) as RecentOrder[];
 
   return (
     <div>
       <h1 className="font-serif text-3xl">Dashboard</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Overview of your store
-      </p>
+      <p className="mt-1 text-sm text-muted-foreground">Overview of your store</p>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          icon={BoxIcon}
-          label="Total Products"
-          value={String(stats.totalProducts)}
-        />
-        <StatCard
-          icon={ShoppingCartIcon}
-          label="Total Orders"
-          value={String(stats.totalOrders)}
-        />
+        <StatCard icon={BoxIcon} label="Total Products" value={String(stats.totalProducts)} />
+        <StatCard icon={ShoppingCartIcon} label="Total Orders" value={String(stats.totalOrders)} />
         <StatCard
           icon={DollarSignIcon}
           label="Total Revenue"
@@ -45,18 +42,25 @@ export default async function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {demoOrders.map((order) => (
+              {recentOrders.map((order) => (
                 <tr key={order.id} className="border-b border-border/50 last:border-0">
-                  <td className="px-4 py-3 font-medium">{order.number}</td>
+                  <td className="px-4 py-3 font-medium">{order.orderNumber}</td>
                   <td className="px-4 py-3">
                     <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-xs capitalize">
-                      {order.status}
+                      {order.status.toLowerCase()}
                     </span>
                   </td>
-                  <td className="px-4 py-3">{order.items.length}</td>
+                  <td className="px-4 py-3">{order.items?.length ?? 0}</td>
                   <td className="px-4 py-3 text-right">{formatPrice(order.total)}</td>
                 </tr>
               ))}
+              {recentOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                    No orders yet
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>

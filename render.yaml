@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: abeera-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: .
+    buildCommand: npm install && npx prisma generate --schema=apps/api/prisma/schema.prisma && npm run build --workspace=@abeera/api
+    startCommand: npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma && npm run start:prod --workspace=@abeera/api
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: abeera-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: abeera-redis
+          type: keyvalue
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: ADMIN_SEED_PASSWORD
+        sync: false
+
+  - type: keyvalue
+    name: abeera-redis
+    plan: free
+    region: singapore
+    maxmemoryPolicy: allkeys_lru
+    ipAllowList: []
+
+databases:
+  - name: abeera-db
+    plan: free
+    region: singapore
+    postgresMajorVersion: "16"

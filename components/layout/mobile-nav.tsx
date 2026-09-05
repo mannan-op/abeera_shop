@@ -3,12 +3,12 @@
 import Link from "next/link";
 
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { getCategories } from "@/lib/catalog";
+import { categories } from "@/lib/catalog/products";
 import { useShop } from "@/lib/store/shop";
 
 export function MobileNav() {
   const { navOpen, setNavOpen } = useShop();
-  const categories = getCategories();
+  const navCategories = categories;
 
   return (
     <Sheet open={navOpen} onOpenChange={setNavOpen}>
@@ -22,7 +22,7 @@ export function MobileNav() {
           >
             Shop
           </Link>
-          {categories.map((category) => (
+          {navCategories.map((category) => (
             <Link
               key={category.slug}
               href={`/category/${category.slug}`}
