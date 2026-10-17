@@ -12,12 +12,27 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/lib/catalog/types";
 
+function SampleCatalogNotice() {
+  return (
+    <p
+      role="status"
+      className="bg-destructive px-4 py-2 text-center text-[12px] leading-snug text-ivory"
+    >
+      No catalog API is configured for this deploy, so the shop is showing the sample catalog
+      from this repo. Set NEXT_PUBLIC_API_URL to read Postgres. Sample products are not used
+      once that URL is set.
+    </p>
+  );
+}
+
 export function SiteShell({
   children,
   categories,
+  sampleCatalog = false,
 }: {
   children: React.ReactNode;
   categories?: Category[] | null;
+  sampleCatalog?: boolean;
 }) {
   const pathname = usePathname();
   const checkout = pathname.startsWith("/checkout");
@@ -50,6 +65,7 @@ export function SiteShell({
           home ? "fixed inset-x-0 top-0" : "sticky top-0",
         )}
       >
+        {sampleCatalog ? <SampleCatalogNotice /> : null}
         <AnnouncementBar />
         <Navbar inverted={home && !scrolled} categories={categories ?? undefined} />
       </div>
