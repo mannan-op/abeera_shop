@@ -4,14 +4,8 @@ import { Suspense } from "react";
 import { CatalogView } from "@/components/products/catalog-view";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getAllCategorySlugs, getCategory } from "@/lib/catalog";
-import type { CategorySlug } from "@/lib/catalog/types";
+import { getCategory } from "@/lib/catalog";
 import type { Metadata } from "next";
-
-export async function generateStaticParams() {
-  const slugs = await getAllCategorySlugs();
-  return slugs.map((slug) => ({ slug }));
-}
 
 export async function generateMetadata({
   params,
@@ -57,7 +51,7 @@ export default async function CategoryPage({
       </p>
       <div className="mt-10">
         <Suspense fallback={<Skeleton className="h-96" />}>
-          <CatalogView searchParams={query} category={category.slug as CategorySlug} />
+          <CatalogView searchParams={query} category={category.slug} />
         </Suspense>
       </div>
     </div>

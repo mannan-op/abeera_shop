@@ -1,4 +1,4 @@
-import type { Category, CategorySlug, Product, ProductColor } from "@/lib/catalog/types";
+import type { Category, Product, ProductColor } from "@/lib/catalog/types";
 
 type ApiCategory = {
   id: string;
@@ -61,9 +61,8 @@ export type ApiProductListItem = {
   soldOut: boolean;
 };
 
-function categorySlug(slug: string): Product["category"] {
-  if (slug === "accessories") return "accessories";
-  return "stitched-suits";
+function categorySlug(slug: string): string {
+  return slug;
 }
 
 function colorsFromProduct(product: ApiProductDetail): ProductColor[] {
@@ -163,13 +162,8 @@ export function mapApiListItem(item: ApiProductListItem): Product {
 }
 
 export function mapApiCategory(category: ApiCategory): Category {
-  const known = ["new-arrivals", "stitched-suits", "accessories", "sale"] as const;
-  const slug = (known.includes(category.slug as CategorySlug)
-    ? category.slug
-    : "stitched-suits") as CategorySlug;
-
   return {
-    slug,
+    slug: category.slug,
     name: category.name,
     description: category.description,
     image: category.image ?? "",

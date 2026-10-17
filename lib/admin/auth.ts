@@ -1,8 +1,7 @@
 import { cookies } from "next/headers";
 
-const ACCESS_COOKIE = "abeera_access_token";
-const REFRESH_COOKIE = "abeera_refresh_token";
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+import { ACCESS_COOKIE, API_URL, REFRESH_COOKIE } from "@/lib/auth/cookies";
+import { ensureAccessToken, writeSessionCookies } from "@/lib/auth/session";
 
 export async function verifyCredentials(email: string, password: string) {
   const res = await fetch(`${API_URL}/auth/login`, {
@@ -22,22 +21,7 @@ export async function verifyCredentials(email: string, password: string) {
 }
 
 export async function createSession(tokens: { accessToken: string; refreshToken: string }) {
-  const cookieStore = await cookies();
-  const secure = process.env.NODE_ENV === "production";
-  cookieStore.set(ACCESS_COOKIE, tokens.accessToken, {
-    httpOnly: true,
-    secure,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 15,
-  });
-  cookieStore.set(REFRESH_COOKIE, tokens.refreshToken, {
-    httpOnly: true,
-    secure,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
+  await writeSessionCookies(tokens);
 }
 
 export async function destroySession() {
@@ -56,8 +40,7 @@ export async function destroySession() {
 }
 
 export async function getAccessToken() {
-  const cookieStore = await cookies();
-  return cookieStore.get(ACCESS_COOKIE)?.value ?? null;
+  return ensureAccessToken();
 }
 
 export async function isAuthenticated() {

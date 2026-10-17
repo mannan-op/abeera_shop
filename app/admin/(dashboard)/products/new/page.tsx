@@ -2,8 +2,12 @@ import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 
 import { ProductForm } from "@/components/admin/product-form";
+import { getCategories } from "@/lib/catalog";
 
-export default function NewProductPage() {
+export default async function NewProductPage() {
+  const categories = (await getCategories())
+    .filter((category) => category.slug !== "new-arrivals" && category.slug !== "sale")
+    .map((category) => ({ slug: category.slug, name: category.name }));
   return (
     <div>
       <Link
@@ -15,7 +19,7 @@ export default function NewProductPage() {
       </Link>
       <h1 className="font-serif text-3xl">New Product</h1>
       <div className="mt-8 max-w-2xl rounded-xl border border-border bg-[#faf7f2] p-6">
-        <ProductForm />
+        <ProductForm categories={categories} />
       </div>
     </div>
   );

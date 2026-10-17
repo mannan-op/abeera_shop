@@ -149,7 +149,7 @@ export const shippingMethods = [
   {
     id: "standard",
     name: "Standard",
-    detail: "3–5 business days",
+    detail: "3–5 business days. Complimentary over Rs. 5,000.",
     price: 30000,
   },
   {
@@ -157,11 +157,5 @@ export const shippingMethods = [
     name: "Express",
     detail: "1–2 business days",
     price: 50000,
-  },
-  {
-    id: "free",
-    name: "Free Delivery",
-    detail: "Orders over Rs. 5,000 · 3–5 days",
-    price: 0,
   },
 ] as const;

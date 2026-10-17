@@ -5,6 +5,7 @@ import { ArrowLeftIcon } from "lucide-react";
 import { ProductForm } from "@/components/admin/product-form";
 import { getAccessToken } from "@/lib/admin/auth";
 import { apiClient } from "@/lib/api/client";
+import { getCategories } from "@/lib/catalog";
 import type { Product } from "@/lib/catalog/types";
 
 export default async function EditProductPage({
@@ -16,14 +17,7 @@ export default async function EditProductPage({
   const token = await getAccessToken();
   if (!token) notFound();
 
-  const list = await apiClient.get<{ items: { id: string; slug: string }[] }>(
-    "/products?pageSize=100",
-    { token, cache: "no-store" },
-  );
-  const match = list.items.find((item) => item.id === id);
-  if (!match) notFound();
-
-  const detail = await apiClient.get<{
+  let detail: {
     id: string;
     slug: string;
     name: string;
@@ -36,7 +30,22 @@ export default async function EditProductPage({
     isNew: boolean;
     isBestSeller: boolean;
     variants: { priceInPaisa: number }[];
-  }>(`/products/${match.slug}`, { token, cache: "no-store" });
+  };
+  try {
+    detail = await apiClient.get<typeof detail>(`/products/by-id/${id}`, {
+      token,
+      cache: "no-store",
+    });
+  } catch {
+    notFound();
+  }
+
+  const categories = (await getCategories())
+    .filter((category) => category.slug !== "new-arrivals" && category.slug !== "sale")
+    .map((category) => ({ slug: category.slug, name: category.name }));
+  if (!categories.some((category) => category.slug === detail.category.slug)) {
+    categories.unshift({ slug: detail.category.slug, name: detail.category.slug });
+  }
 
   const product: Product = {
     id: detail.id,
@@ -47,7 +56,7 @@ export default async function EditProductPage({
     details: detail.details,
     materials: detail.materials,
     care: detail.care,
-    category: detail.category.slug === "accessories" ? "accessories" : "stitched-suits",
+    category: detail.category.slug,
     price: detail.variants[0]?.priceInPaisa ?? 0,
     rating: 0,
     reviewCount: 0,
@@ -68,7 +77,7 @@ export default async function EditProductPage({
       </Link>
       <h1 className="font-serif text-3xl">Edit: {product.name}</h1>
       <div className="mt-8 max-w-2xl rounded-xl border border-border bg-[#faf7f2] p-6">
-        <ProductForm product={product} />
+        <ProductForm product={product} categories={categories} />
       </div>
     </div>
   );

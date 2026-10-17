@@ -13,8 +13,11 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { mapApiListItem, type ApiProductListItem } from "@/lib/api/mappers";
+import { getApiUrl } from "@/lib/api/client";
 import { popularSearches } from "@/lib/catalog";
 import { products as memoryProducts } from "@/lib/catalog/products";
+import { isCatalogApiRequired } from "@/lib/catalog/source";
 import type { Product } from "@/lib/catalog/types";
 import { useShop } from "@/lib/store/shop";
 import { formatPrice } from "@/lib/utils";
@@ -30,66 +33,30 @@ export function SearchDialog() {
       setResults([]);
       return;
     }
-    const q = query.trim().toLowerCase();
-    const local = memoryProducts
-      .filter((product) =>
-        [product.name, product.tagline, product.category].join(" ").toLowerCase().includes(q),
-      )
-      .slice(0, 6);
-    setResults(local);
+    const apiRequired = isCatalogApiRequired();
+    if (!apiRequired) {
+      const q = query.trim().toLowerCase();
+      setResults(
+        memoryProducts
+          .filter((product) =>
+            [product.name, product.tagline, product.category].join(" ").toLowerCase().includes(q),
+          )
+          .slice(0, 6),
+      );
+      return;
+    }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+    setResults([]);
     const controller = new AbortController();
-    fetch(`${apiUrl}/products?search=${encodeURIComponent(query)}&pageSize=6`, {
+    fetch(`${getApiUrl()}/products?search=${encodeURIComponent(query)}&pageSize=6`, {
       signal: controller.signal,
     })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!data?.items?.length) return;
-        setResults(
-          data.items.map((item: {
-            id: string;
-            slug: string;
-            name: string;
-            tagline: string;
-            startingPrice: number;
-            compareAtPrice: number | null;
-            primaryImage: string | null;
-            rating: number;
-            reviewCount: number;
-            isNew: boolean;
-            isBestSeller: boolean;
-            soldOut: boolean;
-            category: { slug: string };
-          }) => {
-            const image =
-              item.primaryImage ??
-              "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=900";
-            return {
-              id: item.id,
-              slug: item.slug,
-              name: item.name,
-              tagline: item.tagline,
-              description: "",
-              details: "",
-              materials: "",
-              care: "",
-              category: item.category.slug === "accessories" ? "accessories" : "stitched-suits",
-              price: item.startingPrice,
-              compareAtPrice: item.compareAtPrice ?? undefined,
-              rating: item.rating,
-              reviewCount: item.reviewCount,
-              isNew: item.isNew,
-              isBestSeller: item.isBestSeller,
-              colors: [{ name: "Default", hex: "#888", images: [image, image] as [string, string] }],
-              sizes: ["S", "M", "L"],
-              soldOut: item.soldOut,
-            } satisfies Product;
-          }),
-        );
+      .then((data: { items?: ApiProductListItem[] } | null) => {
+        setResults((data?.items ?? []).map(mapApiListItem));
       })
       .catch(() => {
-        // keep local results
+        setResults([]);
       });
 
     return () => controller.abort();

@@ -1,19 +1,19 @@
 import { Body, Controller, Param, Post } from "@nestjs/common";
 import { PaymentsService } from "./payments.service";
-import { Public } from "../../common/decorators";
+import { CurrentUser, Public } from "../../common/decorators";
 
 @Controller("payments")
 export class PaymentsController {
   constructor(private payments: PaymentsService) {}
 
   @Post("jazzcash/init/:orderId")
-  initiateJazzCash(@Param("orderId") orderId: string) {
-    return this.payments.initiateJazzCash(orderId);
+  initiateJazzCash(@CurrentUser("id") userId: string, @Param("orderId") orderId: string) {
+    return this.payments.initiateJazzCash(orderId, userId);
   }
 
   @Post("easypaisa/init/:orderId")
-  initiateEasyPaisa(@Param("orderId") orderId: string) {
-    return this.payments.initiateEasyPaisa(orderId);
+  initiateEasyPaisa(@CurrentUser("id") userId: string, @Param("orderId") orderId: string) {
+    return this.payments.initiateEasyPaisa(orderId, userId);
   }
 
   @Public()

@@ -3,6 +3,9 @@ import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 
 import { Providers } from "@/components/providers";
 import { SiteShell } from "@/components/layout/site-shell";
+import { getCategories } from "@/lib/catalog";
+import { isCatalogApiRequired } from "@/lib/catalog/source";
+import type { Category } from "@/lib/catalog/types";
 
 import "./globals.css";
 
@@ -19,6 +22,8 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-serif",
   display: "swap",
 });
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://abeera.example"),
@@ -38,16 +43,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const categories: Category[] | null = isCatalogApiRequired() ? await getCategories() : null;
+
   return (
     <html lang="en" className={`${dmSans.variable} ${cormorant.variable}`}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Providers>
-          <SiteShell>{children}</SiteShell>
+          <SiteShell categories={categories}>{children}</SiteShell>
         </Providers>
       </body>
     </html>

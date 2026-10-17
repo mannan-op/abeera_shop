@@ -3,12 +3,13 @@
 import Link from "next/link";
 
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { categories } from "@/lib/catalog/products";
+import { categories as memoryCategories } from "@/lib/catalog/products";
+import type { Category } from "@/lib/catalog/types";
 import { useShop } from "@/lib/store/shop";
 
-export function MobileNav() {
+export function MobileNav({ categories }: { categories?: Category[] }) {
   const { navOpen, setNavOpen } = useShop();
-  const navCategories = categories;
+  const navCategories = categories ?? memoryCategories;
 
   return (
     <Sheet open={navOpen} onOpenChange={setNavOpen}>

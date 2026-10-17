@@ -4,13 +4,8 @@ import { ProductPurchase } from "@/components/product/product-purchase";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
 import { ProductRail } from "@/components/sections/product-rail";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { getAllProductSlugs, getCategory, getProduct, getRelated, reviews } from "@/lib/catalog";
+import { getCategory, getProduct, getRelated, reviews } from "@/lib/catalog";
 import type { Metadata } from "next";
-
-export async function generateStaticParams() {
-  const slugs = await getAllProductSlugs();
-  return slugs.map((slug) => ({ slug }));
-}
 
 export async function generateMetadata({
   params,

@@ -5,7 +5,8 @@ export const CATEGORY_SLUGS = [
   "sale",
 ] as const;
 
-export type CategorySlug = (typeof CATEGORY_SLUGS)[number];
+/** Storefront and database category slugs. Virtual views use "new-arrivals" and "sale". */
+export type CategorySlug = string;
 
 export type ProductColor = {
   name: string;
@@ -30,7 +31,7 @@ export type Product = {
   details: string;
   materials: string;
   care: string;
-  category: Exclude<CategorySlug, "new-arrivals" | "sale">;
+  category: string;
   price: number;
   compareAtPrice?: number;
   rating: number;

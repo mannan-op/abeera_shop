@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, ConflictException } from "@nestjs/co
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 
 import { PrismaService } from "../../prisma/prisma.service";
 import { RedisService } from "../../redis/redis.service";
@@ -44,21 +45,23 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string) {
+    let payload: JwtPayload;
     try {
-      const payload = this.jwt.verify<JwtPayload>(refreshToken, {
+      payload = this.jwt.verify<JwtPayload>(refreshToken, {
         secret: this.requireSecret("JWT_REFRESH_SECRET"),
       });
-
-      const blacklisted = await this.redis.get(`bl:${refreshToken}`);
-      if (blacklisted) throw new UnauthorizedException("Token revoked");
-
-      const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
-      if (!user || user.deletedAt) throw new UnauthorizedException("User not found");
-
-      return this.generateTokens(user);
     } catch {
       throw new UnauthorizedException("Invalid refresh token");
     }
+
+    const blacklisted = await this.redis.get(`bl:${refreshToken}`);
+    if (blacklisted) throw new UnauthorizedException("Token revoked");
+
+    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+    if (!user || user.deletedAt) throw new UnauthorizedException("User not found");
+
+    await this.redis.set(`bl:${refreshToken}`, "1", 7 * 24 * 60 * 60);
+    return this.generateTokens(user);
   }
 
   async logout(refreshToken: string) {
@@ -86,10 +89,13 @@ export class AuthService {
         secret: this.requireSecret("JWT_ACCESS_SECRET"),
         expiresIn: "15m",
       }),
-      this.jwt.signAsync(payload, {
-        secret: this.requireSecret("JWT_REFRESH_SECRET"),
-        expiresIn: "7d",
-      }),
+      this.jwt.signAsync(
+        { ...payload, jti: randomBytes(16).toString("hex") },
+        {
+          secret: this.requireSecret("JWT_REFRESH_SECRET"),
+          expiresIn: "7d",
+        },
+      ),
     ]);
 
     return {

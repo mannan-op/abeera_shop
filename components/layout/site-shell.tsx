@@ -10,8 +10,15 @@ import { CartDrawer } from "@/components/cart/cart-drawer";
 import { SearchDialog } from "@/components/search/search-dialog";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { cn } from "@/lib/utils";
+import type { Category } from "@/lib/catalog/types";
 
-export function SiteShell({ children }: { children: React.ReactNode }) {
+export function SiteShell({
+  children,
+  categories,
+}: {
+  children: React.ReactNode;
+  categories?: Category[] | null;
+}) {
   const pathname = usePathname();
   const checkout = pathname.startsWith("/checkout");
   const admin = pathname.startsWith("/admin");
@@ -44,13 +51,13 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         )}
       >
         <AnnouncementBar />
-        <Navbar inverted={home && !scrolled} />
+        <Navbar inverted={home && !scrolled} categories={categories ?? undefined} />
       </div>
       <main className="flex-1">{children}</main>
       <Footer />
       <CartDrawer />
       <SearchDialog />
-      <MobileNav />
+      <MobileNav categories={categories ?? undefined} />
     </div>
   );
 }

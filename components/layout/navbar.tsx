@@ -13,6 +13,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { categories as catalogCategories, collections } from "@/lib/catalog/products";
+import type { Category } from "@/lib/catalog/types";
 import { useShop } from "@/lib/store/shop";
 import { cn } from "@/lib/utils";
 
@@ -34,10 +35,16 @@ const collectionCopy = [
   },
 ];
 
-export function Navbar({ inverted = false }: { inverted?: boolean }) {
+export function Navbar({
+  inverted = false,
+  categories: categorySource,
+}: {
+  inverted?: boolean;
+  categories?: Category[];
+}) {
   const { cartCount, wishlist, setCartOpen, setSearchOpen, setNavOpen } = useShop();
   const featured = collections[0];
-  const categories = catalogCategories.filter(
+  const categories = (categorySource ?? catalogCategories).filter(
     (category) => category.slug !== "new-arrivals" && category.slug !== "sale",
   );
 

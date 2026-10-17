@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "npm run build --workspace=@abeera/shared",
     "build": "tsc -p tsconfig.json --incremental false",
-    "dev": "nest start --watch",
+    "dev": "npm run build --workspace=@abeera/shared && nest start --watch",
+    "test": "ts-node --project tsconfig.test.json --transpile-only -r ./test/env.ts test/commerce.test.ts",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "db:generate": "prisma generate",

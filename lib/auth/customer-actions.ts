@@ -1,11 +1,8 @@
 "use server";
 
-import { cookies } from "next/headers";
-
-import { ACCESS_COOKIE, REFRESH_COOKIE } from "@/lib/admin/auth";
+import { API_URL } from "@/lib/auth/cookies";
+import { ensureAccessToken, writeSessionCookies } from "@/lib/auth/session";
 import type { CartItem } from "@/lib/catalog/types";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
 type AuthTokens = {
   accessToken: string;
@@ -14,22 +11,7 @@ type AuthTokens = {
 };
 
 async function setCustomerSession(tokens: AuthTokens) {
-  const cookieStore = await cookies();
-  const secure = process.env.NODE_ENV === "production";
-  cookieStore.set(ACCESS_COOKIE, tokens.accessToken, {
-    httpOnly: true,
-    secure,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 15,
-  });
-  cookieStore.set(REFRESH_COOKIE, tokens.refreshToken, {
-    httpOnly: true,
-    secure,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
+  await writeSessionCookies(tokens);
 }
 
 export async function customerLogin(email: string, password: string) {
@@ -73,8 +55,7 @@ export async function customerRegister(input: {
 }
 
 export async function getCustomerAccessToken() {
-  const cookieStore = await cookies();
-  return cookieStore.get(ACCESS_COOKIE)?.value ?? null;
+  return ensureAccessToken();
 }
 
 export type PlaceOrderInput = {
@@ -88,6 +69,9 @@ export type PlaceOrderInput = {
   postalCode: string;
   country: string;
   paymentMethod: "COD" | "JAZZCASH" | "EASYPAISA";
+  shippingMethod: "standard" | "express";
+  promoCode?: string;
+  idempotencyKey: string;
   items: CartItem[];
 };
 
@@ -188,6 +172,9 @@ export async function placeOrder(input: PlaceOrderInput) {
     body: JSON.stringify({
       addressId: address.id,
       paymentMethod: input.paymentMethod,
+      shippingMethod: input.shippingMethod,
+      promoCode: input.promoCode,
+      idempotencyKey: input.idempotencyKey,
     }),
     cache: "no-store",
   });

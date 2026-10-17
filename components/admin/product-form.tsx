@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { saveProductAction } from "@/lib/admin/actions";
-import { CATEGORY_SLUGS } from "@/lib/catalog/types";
 import type { Product } from "@/lib/catalog/types";
 
-const editableCategories = CATEGORY_SLUGS.filter(
-  (s) => s !== "new-arrivals" && s !== "sale",
-);
-
-export function ProductForm({ product }: { product?: Product }) {
+export function ProductForm({
+  product,
+  categories,
+}: {
+  product?: Product;
+  categories: { slug: string; name: string }[];
+}) {
   const [error, formAction, pending] = useActionState(saveProductAction, null);
 
   return (
@@ -57,12 +58,9 @@ export function ProductForm({ product }: { product?: Product }) {
             required
             className="mt-1.5 h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
           >
-            {editableCategories.map((slug) => (
-              <option key={slug} value={slug}>
-                {slug
-                  .split("-")
-                  .map((w) => w[0].toUpperCase() + w.slice(1))
-                  .join(" ")}
+            {categories.map((category) => (
+              <option key={category.slug} value={category.slug}>
+                {category.name}
               </option>
             ))}
           </select>
