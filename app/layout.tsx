@@ -24,6 +24,7 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
+// Render on each request so catalog data is read from the API when a request arrives.
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {

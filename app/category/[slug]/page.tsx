@@ -31,7 +31,11 @@ export default async function CategoryPage({
   const { slug } = await params;
   const query = await searchParams;
   const category = await getCategory(slug);
-  if (!category) notFound();
+  if (!category) {
+    // Page-data collection has no catalog host. Leave a shell; a real request 404s.
+    if (process.env.NEXT_PHASE === "phase-production-build") return <main />;
+    notFound();
+  }
 
   return (
     <div className="mx-auto max-w-[1440px] px-5 py-12 md:px-10 md:py-16">

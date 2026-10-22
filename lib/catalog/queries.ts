@@ -18,6 +18,48 @@ import {
 
 const PAGE_SIZE = 12;
 
+/**
+ * `next build` collects page data before any request exists. A catalog host
+ * that is down must not fail that step. The empty value is thrown away with
+ * the build; it is never the sample catalog, and a later request still reads
+ * the API.
+ */
+export class CatalogUnavailableError extends Error {
+  constructor(cause?: unknown) {
+    super("Catalog API is unavailable");
+    this.name = "CatalogUnavailableError";
+    if (cause !== undefined) this.cause = cause;
+  }
+}
+
+function isProductionBuild() {
+  return process.env.NEXT_PHASE === "phase-production-build";
+}
+
+function isFrameworkBailout(error: unknown) {
+  if (typeof error !== "object" || error === null) return false;
+  if ("code" in error && error.code === "NEXT_STATIC_GEN_BAILOUT") return true;
+  if ("digest" in error && typeof error.digest === "string") {
+    return (
+      error.digest.startsWith("NEXT_REDIRECT") ||
+      error.digest.startsWith("NEXT_HTTP_ERROR_FALLBACK") ||
+      error.digest.startsWith("NEXT_NOT_FOUND")
+    );
+  }
+  return false;
+}
+
+async function readCatalog<T>(path: string, empty: T): Promise<T> {
+  if (isProductionBuild()) return empty;
+  try {
+    return await apiClient.get<T>(path, { cache: "no-store" });
+  } catch (error) {
+    if (isFrameworkBailout(error)) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new CatalogUnavailableError(error);
+  }
+}
+
 type Paginated<T> = {
   items: T[];
   total: number;
@@ -67,9 +109,9 @@ function memoryCategories(): Category[] {
 
 export async function getCategories(): Promise<Category[]> {
   if (!isCatalogApiRequired()) return memoryCategories();
-  const rows = await apiClient.get<
+  const rows = await readCatalog<
     { id: string; slug: string; name: string; description: string; image: string | null; sortOrder: number }[]
-  >("/categories");
+  >("/categories", []);
   const mapped = rows.map(mapApiCategory);
   const virtual = virtualCategories().filter(
     (category) => !mapped.some((row) => row.slug === category.slug),
@@ -91,7 +133,8 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
     return memoryProducts.find((product) => product.slug === slug);
   }
   try {
-    const product = await apiClient.get<ApiProductDetail>(`/products/${slug}`);
+    const product = await readCatalog<ApiProductDetail | undefined>(`/products/${slug}`, undefined);
+    if (!product) return undefined;
     return mapApiProduct(product);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return undefined;
@@ -102,7 +145,11 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
 export async function getProductById(id: string): Promise<Product | undefined> {
   if (!isCatalogApiRequired()) return getProductByIdSync(id);
   try {
-    const product = await apiClient.get<ApiProductDetail>(`/products/by-id/${id}`);
+    const product = await readCatalog<ApiProductDetail | undefined>(
+      `/products/by-id/${id}`,
+      undefined,
+    );
+    if (!product) return undefined;
     return mapApiProduct(product);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return undefined;
@@ -118,7 +165,12 @@ export function getProductByIdSync(id: string): Product | undefined {
 
 export async function getAllProductSlugs() {
   if (!isCatalogApiRequired()) return memoryProducts.map((product) => product.slug);
-  const result = await apiClient.get<Paginated<ApiProductListItem>>(`/products?pageSize=100`);
+  const result = await readCatalog<Paginated<ApiProductListItem>>(`/products?pageSize=100`, {
+    items: [],
+    total: 0,
+    page: 1,
+    pageSize: 100,
+  });
   return result.items.map((item) => item.slug);
 }
 
@@ -146,8 +198,9 @@ export async function getCatalogFacets(category?: CategorySlug) {
   if (category && category !== "new-arrivals" && category !== "sale") {
     params.set("category", category);
   }
-  const filters = await apiClient.get<{ sizes: string[]; min: number; max: number }>(
+  const filters = await readCatalog<{ sizes: string[]; min: number; max: number }>(
     `/products/filters?${params.toString()}`,
+    { sizes: [], min: 0, max: 0 },
   );
   return {
     colors: [] as { name: string; hex: string }[],
@@ -298,8 +351,9 @@ export async function listProducts(filters: ProductFilters = {}) {
   params.set("pageSize", String(pageSize));
   if (query) params.set("search", query);
 
-  const result = await apiClient.get<Paginated<ApiProductListItem>>(
+  const result = await readCatalog<Paginated<ApiProductListItem>>(
     `/products?${params.toString()}`,
+    { items: [], total: 0, page, pageSize },
   );
   let items = result.items.map(mapApiListItem);
   if (availability === "in-stock") {
@@ -324,8 +378,9 @@ export async function getBestSellers(limit = 8) {
   if (!isCatalogApiRequired()) {
     return memoryProducts.filter((product) => product.isBestSeller).slice(0, limit);
   }
-  const result = await apiClient.get<Paginated<ApiProductListItem>>(
+  const result = await readCatalog<Paginated<ApiProductListItem>>(
     `/products?sort=featured&isBestSeller=true&pageSize=${limit}`,
+    { items: [], total: 0, page: 1, pageSize: limit },
   );
   return result.items.map(mapApiListItem);
 }

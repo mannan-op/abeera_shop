@@ -31,7 +31,10 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
   const product = await getProduct(slug);
-  if (!product) notFound();
+  if (!product) {
+    if (process.env.NEXT_PHASE === "phase-production-build") return <main />;
+    notFound();
+  }
   const related = await getRelated(product);
   const category = await getCategory(product.category);
   const productReviews = reviews.filter((review) => review.productId === product.id);
