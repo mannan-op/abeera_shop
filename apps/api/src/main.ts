@@ -1,4 +1,4 @@
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication, RequestMethod, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 
@@ -28,7 +28,9 @@ export function configureApp(app: INestApplication) {
     credentials: true,
   });
 
-  app.setGlobalPrefix("api");
+  app.setGlobalPrefix("api", {
+    exclude: [{ path: "/", method: RequestMethod.GET }],
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

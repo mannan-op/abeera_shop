@@ -14,7 +14,7 @@ import { OrdersModule } from "./modules/orders/orders.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { MediaModule } from "./modules/media/media.module";
 import { AdminModule } from "./modules/admin/admin.module";
-import { HealthController } from "./health.controller";
+import { HealthController, RootHealthController } from "./health.controller";
 
 @Module({
   imports: [
@@ -32,7 +32,7 @@ import { HealthController } from "./health.controller";
     MediaModule,
     AdminModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, RootHealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
