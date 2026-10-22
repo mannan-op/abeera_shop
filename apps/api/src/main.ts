@@ -18,7 +18,10 @@ function isAbeeraVercelOrigin(origin: string): boolean {
 export function configureApp(app: INestApplication) {
   const frontendUrl = (process.env.FRONTEND_URL ?? "http://localhost:3000").replace(/\/$/, "");
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin || origin === frontendUrl || isAbeeraVercelOrigin(origin)) {
         callback(null, true);
         return;
