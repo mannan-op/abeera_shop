@@ -42,10 +42,20 @@ async function getHomepageContent() {
   }
 }
 
+async function readFeatured() {
+  try {
+    const bestsellers = await getBestSellers(4);
+    if (bestsellers.length > 0) return bestsellers;
+    return await getNewArrivals(4);
+  } catch (error) {
+    if (isFrameworkBailout(error)) throw error;
+    return [];
+  }
+}
+
 export default async function HomePage() {
   const content = await getHomepageContent();
-  const bestsellers = await getBestSellers(4);
-  const featured = bestsellers.length > 0 ? bestsellers : await getNewArrivals(4);
+  const featured = await readFeatured();
 
   return (
     <>
