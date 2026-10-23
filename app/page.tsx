@@ -1,35 +1,30 @@
 import { EditorialHero } from "@/components/hero/editorial-hero";
-import {
-  BrandStrip,
-  CampaignFour,
-  CampaignThree,
-  CampaignTwo,
-  TypeInterlude,
-} from "@/components/sections/campaigns";
-import { SocialGallery, NewsletterSection } from "@/components/sections/gallery-newsletter";
+import { CategoryChips } from "@/components/sections/category-chips";
+import { Lookbook } from "@/components/sections/lookbook";
+import { NewsletterSection } from "@/components/sections/gallery-newsletter";
 import { ProductRail } from "@/components/sections/product-rail";
-import { Testimonials } from "@/components/sections/testimonials";
-import { getBestSellers } from "@/lib/catalog";
+import { TrustStrip } from "@/components/sections/trust-strip";
+import { getBestSellers, getNewArrivals } from "@/lib/catalog";
 
 export default async function HomePage() {
   const bestsellers = await getBestSellers(4);
+  const featured = bestsellers.length > 0 ? bestsellers : await getNewArrivals(4);
 
   return (
     <>
       <EditorialHero />
-      <CampaignThree />
-      <TypeInterlude />
-      <CampaignTwo />
-      <ProductRail
-        eyebrow="Most loved"
-        title="Best Sellers"
-        href="/shop?sort=featured"
-        products={bestsellers}
-      />
-      <CampaignFour />
-      <BrandStrip />
-      <Testimonials />
-      <SocialGallery />
+      <CategoryChips />
+      {featured.length > 0 ? (
+        <ProductRail
+          eyebrow={bestsellers.length > 0 ? "Most loved" : "Just landed"}
+          title={bestsellers.length > 0 ? "Best Sellers" : "New Arrivals"}
+          href={bestsellers.length > 0 ? "/shop?sort=featured" : "/category/new-arrivals"}
+          products={featured}
+        />
+      ) : (
+        <Lookbook />
+      )}
+      <TrustStrip />
       <NewsletterSection />
     </>
   );

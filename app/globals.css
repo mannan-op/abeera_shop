@@ -2,6 +2,32 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  Abeera hybrid visual system
+  Soft editorial base, one festive moment, modern pret shopping.
+
+  Palette
+  --cream            #F9F6F0  page background
+  --ivory            #FFFCF7  cards and fields
+  --blush            #F4E8E0  quiet washes
+  --charcoal         #2A2420  text
+  --ink-soft         #5C564F  secondary text (AA on cream)
+  --burgundy         #6E2430  primary buttons, prices, festive bars
+  --burgundy-deep    #541824  announcement and hover
+  --gold             #C4A574  fills; pair with charcoal text
+  --gold-ink         #6F5430  gold-toned text on cream (AA)
+  --gold-soft        #F3E6C4  "New" badges
+  --gold-on-dark     #F3E6C8  gold text on burgundy
+
+  Type scale (Cormorant Garamond headings, DM Sans UI/body)
+  --text-display     clamp(2.35rem, 4.4vw, 3.45rem)  hero
+  --text-title       clamp(1.75rem, 2.2vw, 2.25rem)  section titles
+  --text-lead        1.35rem                          italic subheads
+  --text-body        0.9375rem / 1.65                 body
+  --text-ui          0.8125rem                        prices, meta
+  --text-kicker      0.6875rem / 0.16em               labels
+*/
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -23,38 +49,52 @@
   --color-ring: var(--ring);
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
+  --color-gold-ink: var(--gold-ink);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-on-dark: var(--gold-on-dark);
   --color-ivory: var(--ivory);
+  --color-blush: var(--blush);
+  --color-burgundy: var(--burgundy);
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
-  --radius-sm: 999px;
-  --radius-md: 999px;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 }
 
 :root {
-  --background: #f3eee6;
-  --foreground: #14110e;
-  --card: #faf7f2;
-  --card-foreground: #14110e;
-  --popover: #faf7f2;
-  --popover-foreground: #14110e;
-  --primary: #1a1613;
-  --primary-foreground: #f6f1ea;
-  --secondary: #3d342c;
-  --secondary-foreground: #f6f1ea;
-  --muted: #e8e0d4;
-  --muted-foreground: #6b6156;
-  --accent: #e8e0d4;
-  --accent-foreground: #1a1613;
-  --gold: #b0894f;
-  --gold-foreground: #14110e;
-  --ivory: #faf7f2;
-  --destructive: #b42318;
-  --border: #ddd4c8;
-  --input: #ddd4c8;
-  --ring: #1a1613;
-  --radius: 999px;
+  --background: #f9f6f0;
+  --foreground: #2a2420;
+  --card: #fffcf7;
+  --card-foreground: #2a2420;
+  --popover: #fffcf7;
+  --popover-foreground: #2a2420;
+  --primary: #6e2430;
+  --primary-foreground: #f9f6f0;
+  --secondary: #541824;
+  --secondary-foreground: #f9f6f0;
+  --muted: #f4e8e0;
+  --muted-foreground: #5c564f;
+  --accent: #f4e8e0;
+  --accent-foreground: #2a2420;
+  --gold: #c4a574;
+  --gold-foreground: #2a2420;
+  --gold-ink: #6f5430;
+  --gold-soft: #f3e6c4;
+  --gold-on-dark: #f3e6c8;
+  --ivory: #fffcf7;
+  --blush: #f4e8e0;
+  --burgundy: #6e2430;
+  --kicker: #6f5430;
+  --destructive: #9f2d2d;
+  --border: #e5dcd0;
+  --input: #e5dcd0;
+  --ring: #6e2430;
+  --radius: 0.5rem;
+  --text-display: clamp(2.35rem, 4.4vw, 3.45rem);
+  --text-title: clamp(1.75rem, 2.2vw, 2.25rem);
+  --text-lead: 1.35rem;
 }
 
 @layer base {
@@ -83,8 +123,8 @@
   }
 
   ::selection {
-    background: #1a1613;
-    color: #f6f1ea;
+    background: #6e2430;
+    color: #f9f6f0;
   }
 }
 
@@ -93,7 +133,7 @@
   font-weight: 500;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--kicker);
 }
 
 @keyframes fade-in {

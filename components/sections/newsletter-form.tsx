@@ -10,9 +10,11 @@ import { cn } from "@/lib/utils";
 export function NewsletterForm({
   compact = false,
   inverted = false,
+  id = "newsletter-email",
 }: {
   compact?: boolean;
   inverted?: boolean;
+  id?: string;
 }) {
   const [email, setEmail] = React.useState("");
   const [status, setStatus] = React.useState<"idle" | "loading" | "success">("idle");
@@ -37,11 +39,11 @@ export function NewsletterForm({
 
   return (
     <form onSubmit={onSubmit} className={compact ? "flex gap-2" : "flex flex-col gap-3 sm:flex-row"}>
-      <label className="sr-only" htmlFor={inverted ? "newsletter-email-footer" : "newsletter-email"}>
+      <label className="sr-only" htmlFor={id}>
         Email address
       </label>
       <Input
-        id={inverted ? "newsletter-email-footer" : "newsletter-email"}
+        id={id}
         type="email"
         required
         autoComplete="email"

@@ -15,26 +15,26 @@ export function ProductRail({
   href: string;
   products: Product[];
 }) {
+  if (products.length === 0) return null;
+
   return (
     <Reveal>
-      <section className="mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-24">
+      <section className="mx-auto max-w-[1280px] px-5 py-12 md:px-10 md:py-16">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="kicker">{eyebrow}</p>
-            <h2 className="mt-4 font-serif text-4xl md:text-5xl">{title}</h2>
+            {eyebrow ? <p className="kicker">{eyebrow}</p> : null}
+            <h2 className="mt-2 font-serif text-[length:var(--text-title)] leading-tight">{title}</h2>
           </div>
-          <Link href={href} className="hidden kicker md:inline">
+          <Link href={href} className="hidden text-sm text-primary underline-offset-4 hover:underline md:inline">
             View all
           </Link>
         </div>
-        <div className="mt-12 flex gap-5 overflow-x-auto pb-2 md:grid md:grid-cols-4 md:overflow-visible">
+        <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
           {products.map((product) => (
-            <div key={product.id} className="min-w-[72%] md:min-w-0">
-              <ProductCard product={product} />
-            </div>
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
-        <Link href={href} className="kicker mt-6 inline-block md:hidden">
+        <Link href={href} className="mt-6 inline-block text-sm text-primary underline-offset-4 hover:underline md:hidden">
           View all
         </Link>
       </section>

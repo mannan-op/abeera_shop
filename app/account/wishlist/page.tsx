@@ -21,7 +21,7 @@ export default function WishlistPage() {
           <div className="py-16 text-center">
             <p className="font-serif text-2xl">Nothing saved yet</p>
             <Button asChild className="mt-6">
-              <Link href="/shop">Browse the atelier</Link>
+              <Link href="/shop">Browse the shop</Link>
             </Button>
           </div>
         ) : (

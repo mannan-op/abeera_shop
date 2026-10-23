@@ -63,7 +63,7 @@ export function BrandStory() {
     <Reveal>
       <section className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 py-20 md:grid-cols-2 md:gap-16 md:px-10 md:py-32">
         <div className="relative aspect-4/5 overflow-hidden">
-          <Image src={IMG.story} alt="Abeera atelier rails" fill className="object-cover" sizes="50vw" />
+          <Image src={IMG.heroEid} alt="Embroidered festive ensemble from Abeera" fill className="object-cover" sizes="50vw" />
         </div>
         <div className="max-w-lg">
           <p className="kicker">The house</p>
@@ -71,7 +71,7 @@ export function BrandStory() {
             Fewer pieces. <em className="italic text-gold">Better cloth.</em>
           </h2>
           <p className="mt-6 text-base leading-relaxed text-muted-foreground md:text-lg">
-            Abeera began as a small atelier above a courtyard in the Marais. We still cut there — silk from Como, linen from Flanders, cashmere from mills that answer the phone. The brand is named for a woman who dressed as if the room were already enough.
+            Abeera began in Lahore. Lawn from Faisalabad, chiffon from mills we trust, zardozi from hands that have stitched for generations. The edit stays small so every suit can be finished properly.
           </p>
           <Button asChild variant="outline" className="mt-10">
             <Link href="/about">Read the story</Link>

@@ -66,7 +66,7 @@ export default async function OrderConfirmationPage({
   return (
     <div className="mx-auto max-w-xl px-5 py-20 text-center md:py-28">
       <p className="kicker">Thank you</p>
-      <h1 className="mt-4 font-serif text-4xl md:text-5xl">Your order is with the atelier</h1>
+      <h1 className="mt-4 font-serif text-4xl md:text-5xl">Your order is confirmed in Lahore</h1>
       <p className="mt-4 text-sm text-muted-foreground">Order {order.orderNumber}.</p>
       <dl className="mt-10 space-y-2 text-sm">
         <div className="flex justify-between">

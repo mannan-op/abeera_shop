@@ -1,24 +1,15 @@
 import Link from "next/link";
 
 export function AnnouncementBar() {
-  const message = "Free delivery over Rs. 5,000 · Eid Collection now live · Lahore · Details";
-
   return (
-    <div className="overflow-hidden bg-primary text-ivory hover:[&_.animate-marquee]:[animation-play-state:paused]">
-      <p className="sr-only">
-        Free delivery over Rs. 5,000.{" "}
-        <Link href="/shipping">Shipping details</Link>
+    <div className="bg-secondary text-gold-on-dark">
+      <p className="px-4 py-2 text-center text-[12px] leading-snug tracking-[0.04em] sm:text-[13px]">
+        Free delivery over Rs. 5,000
+        <span aria-hidden="true"> · </span>
+        <Link href="/shop" className="underline-offset-4 hover:underline">
+          Eid Collection now live
+        </Link>
       </p>
-      <div className="flex whitespace-nowrap py-2 text-[11px] tracking-[0.18em] uppercase" aria-hidden>
-        <div className="animate-marquee flex min-w-full shrink-0 justify-around">
-          <span className="px-8">{message}</span>
-          <span className="px-8">{message}</span>
-        </div>
-        <div className="animate-marquee flex min-w-full shrink-0 justify-around">
-          <span className="px-8">{message}</span>
-          <span className="px-8">{message}</span>
-        </div>
-      </div>
     </div>
   );
 }

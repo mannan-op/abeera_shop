@@ -4,6 +4,7 @@ import Image from "next/image";
 import * as React from "react";
 
 import type { Product } from "@/lib/catalog/types";
+import { cn } from "@/lib/utils";
 
 export function ProductGallery({
   product,
@@ -13,40 +14,49 @@ export function ProductGallery({
   colorName: string;
 }) {
   const color = product.colors.find((entry) => entry.name === colorName) ?? product.colors[0];
-  const [active, setActive] = React.useState(0);
-  const images = color.images;
+  const [frame, setFrame] = React.useState({ colorName, index: 0 });
+  const images = color?.images ?? [];
+  const active = frame.colorName === colorName ? frame.index : 0;
 
-  React.useEffect(() => {
-    setActive(0);
-  }, [colorName]);
+  if (!color || images.length === 0) {
+    return (
+      <div className="flex aspect-[3/4] items-end rounded-xl bg-blush p-6">
+        <p className="font-serif text-3xl text-foreground/70">{product.name}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid gap-3 md:grid-cols-[72px_1fr]">
-      <div className="order-2 flex gap-2 overflow-x-auto md:order-1 md:flex-col">
-        {images.map((src, index) => (
-          <button
-            key={src}
-            type="button"
-            aria-label={`View image ${index + 1}`}
-            className={`relative size-16 shrink-0 overflow-hidden border ${
-              active === index ? "border-primary" : "border-transparent"
-            }`}
-            onClick={() => setActive(index)}
-          >
-            <Image src={src} alt="" fill className="object-cover" sizes="64px" />
-          </button>
-        ))}
-      </div>
-      <div className="relative order-1 aspect-3/4 overflow-hidden bg-muted md:order-2">
+    <div className="grid gap-3">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-blush">
         <Image
-          src={images[active]}
+          src={images[active] ?? images[0]}
           alt={`${product.name} in ${color.name}`}
           fill
           priority
           className="object-cover"
-          sizes="(max-width: 768px) 100vw, 50vw"
+          sizes="(max-width: 1024px) 100vw, 50vw"
         />
       </div>
+      {images.length > 1 ? (
+        <div className="flex gap-2 overflow-x-auto">
+          {images.map((src, index) => (
+            <button
+              key={`${src}-${index}`}
+              type="button"
+              aria-label={`View image ${index + 1}`}
+              aria-current={active === index}
+              className={cn(
+                "relative size-[4.5rem] shrink-0 overflow-hidden rounded-lg border-2 bg-blush",
+                active === index ? "border-primary" : "border-transparent",
+              )}
+              onClick={() => setFrame({ colorName, index })}
+            >
+              <Image src={src} alt="" fill className="object-cover" sizes="72px" />
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -34,14 +34,14 @@ export const metadata: Metadata = {
     template: "%s — Abeera",
   },
   description:
-    "Abeera is a Pakistani women's clothing brand offering stitched suits, formals, and accessories with craftsmanship rooted in tradition.",
+    "Abeera is a Lahore house for Pakistani women's clothing — lawn, chiffon, zardozi, stitched suits, and festive pret.",
   openGraph: {
     type: "website",
     locale: "en_PK",
     siteName: "Abeera",
     title: "Abeera — Pakistani Women's Clothing",
     description:
-      "Stitched suits, formals, and accessories with craftsmanship rooted in tradition.",
+      "Lawn, chiffon, zardozi, and stitched pret from Lahore.",
   },
 };
 
