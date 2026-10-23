@@ -13,7 +13,7 @@ export default function ComingSoonPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-primary px-6 py-24 text-center text-ivory">
-      <p className="kicker text-gold">Lahore</p>
+      <p className="kicker text-gold-on-dark">Lahore</p>
       <h1 className="mt-5 font-serif text-5xl leading-none tracking-tight md:text-7xl">
         Abeera Collection
       </h1>

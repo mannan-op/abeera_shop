@@ -77,7 +77,7 @@ export function SearchDialog() {
           <CommandInput
             value={query}
             onValueChange={setQuery}
-            placeholder="Search the atelier"
+            placeholder="Search lawn, chiffon, festive"
             onKeyDown={(event) => {
               if (event.key === "Enter" && query.trim()) {
                 go(`/search?q=${encodeURIComponent(query.trim())}`, query.trim());

@@ -13,6 +13,13 @@ export function formatPrice(cents: number, currency = "PKR") {
   }).format(cents / 100);
 }
 
+/** Whole rupees for layouts that set the PKR label separately. Same cents math as formatPrice. */
+export function formatPriceAmount(cents: number) {
+  return new Intl.NumberFormat("en-PK", {
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

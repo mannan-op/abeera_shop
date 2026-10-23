@@ -6,6 +6,11 @@ export function unsplash(id: string, width = 1400) {
 
 export const IMG = {
   hero: unsplash("photo-1469334031218-e382a71b716b", 2000),
+  heroEid: unsplash("photo-1610030469983-98e550d6193c", 1800),
+  festivePortrait: unsplash("photo-1609607285694-e283bd2ea9a0", 1200),
+  bridalDetail: unsplash("photo-1591604466107-ec97de577aff", 1200),
+  goldJewel: unsplash("photo-1596815064285-45ed8a9c0463", 1000),
+  lawnPrint: unsplash("photo-1622398925373-3f91b1e275f5", 1000),
   story: unsplash("photo-1441986300917-64674bd600d8", 1600),
   banner: unsplash("photo-1490481651871-ab68de25d43d", 1800),
   atelier: unsplash("photo-1441984904996-e0b6ba687e04", 1400),

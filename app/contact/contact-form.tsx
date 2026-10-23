@@ -30,7 +30,7 @@ export default function ContactForm() {
           Care, alterations, and press. We reply within a working day.
         </p>
         <p className="mt-6 text-sm">care@abeera.example</p>
-        <p className="text-sm text-muted-foreground">18 Rue des Archives, 75004 Paris</p>
+        <p className="text-sm text-muted-foreground">Lahore, Pakistan</p>
       </div>
       <form
         className="space-y-4"

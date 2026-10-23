@@ -4,13 +4,14 @@ function Badge({
   className,
   tone = "ink",
   ...props
-}: React.ComponentProps<"span"> & { tone?: "ink" | "gold" | "muted" }) {
+}: React.ComponentProps<"span"> & { tone?: "ink" | "gold" | "muted" | "soft" }) {
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em]",
         tone === "ink" && "bg-primary text-primary-foreground",
         tone === "gold" && "bg-gold text-gold-foreground",
+        tone === "soft" && "bg-gold-soft text-gold-ink",
         tone === "muted" && "bg-muted text-muted-foreground",
         className,
       )}

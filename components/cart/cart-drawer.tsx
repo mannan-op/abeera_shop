@@ -31,7 +31,7 @@ export function CartDrawer() {
           <div className="flex flex-1 flex-col items-start justify-center px-6">
             <p className="font-serif text-2xl">Your bag is empty</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              New arrivals are in the atelier.
+              The Eid edit and new arrivals are waiting in the shop.
             </p>
             <Button asChild className="mt-8">
               <Link href="/shop" onClick={() => setCartOpen(false)}>
