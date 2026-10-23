@@ -39,7 +39,12 @@ export class SeedController {
 
     try {
       const result = await this.runOnce();
-      return { ok: true, products: result.products, categories: result.categories };
+      return {
+        ok: true,
+        products: result.products,
+        categories: result.categories,
+        homepageSeeded: result.homepageSeeded,
+      };
     } catch (error) {
       console.error("Catalog seed failed", error instanceof Error ? error.message : error);
       throw new InternalServerErrorException("Catalog seed failed");

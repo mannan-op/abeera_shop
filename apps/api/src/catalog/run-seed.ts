@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { HOMEPAGE_CONTENT_ID, defaultHomepageContent } from "@abeera/shared";
 import * as bcrypt from "bcryptjs";
 import * as fs from "fs";
 import * as path from "path";
@@ -38,6 +39,7 @@ type VariantSeed = {
 export type CatalogSeedResult = {
   products: number;
   categories: number;
+  homepageSeeded: boolean;
 };
 
 /** Same catalog file `prisma/seed.ts` reads, from source or from `dist/`. */
@@ -161,7 +163,27 @@ export async function runCatalogSeed(prisma: PrismaClient): Promise<CatalogSeedR
     products += 1;
   }
 
-  return { products, categories: categoryDefs.length };
+  const homepageSeeded = await ensureHomepageContent(prisma);
+  return { products, categories: categoryDefs.length, homepageSeeded };
+}
+
+/**
+ * Inserts the Lahore House homepage only when the row is missing.
+ * A later catalog reseed must not wipe copy an admin has saved.
+ */
+async function ensureHomepageContent(prisma: PrismaClient) {
+  const existing = await prisma.homepageContent.findUnique({
+    where: { id: HOMEPAGE_CONTENT_ID },
+  });
+  if (existing) return false;
+
+  await prisma.homepageContent.create({
+    data: {
+      id: HOMEPAGE_CONTENT_ID,
+      document: JSON.parse(JSON.stringify(defaultHomepageContent)),
+    },
+  });
+  return true;
 }
 
 async function replaceVariantsAndImages(

@@ -1,21 +1,20 @@
-import Image from "next/image";
 import Link from "next/link";
 
+import { CmsImage } from "@/components/media/cms-image";
 import { Button } from "@/components/ui/button";
-import { IMG } from "@/lib/catalog";
+import type { HomepageHero } from "@abeera/shared";
 
-export function EditorialHero() {
+export function EditorialHero({ hero }: { hero: HomepageHero }) {
   return (
     <section
       id="home-hero"
-      aria-label="Eid Collection"
+      aria-label={hero.eyebrow}
       className="relative -mt-16 flex min-h-[min(94vh,900px)] items-end overflow-hidden bg-espresso text-paper md:-mt-[4.5rem]"
     >
       <div className="absolute inset-0">
-        <Image
-          src={IMG.heroEid}
-          alt="Woman in an embroidered cream festive ensemble, Abeera Eid Collection"
-          fill
+        <CmsImage
+          src={hero.imageUrl}
+          alt={hero.imageAlt}
           priority
           className="animate-hero-in object-cover object-[center_18%]"
           sizes="100vw"
@@ -26,24 +25,27 @@ export function EditorialHero() {
         />
       </div>
       <div className="animate-rise relative z-[1] mx-auto w-full max-w-[1440px] px-[clamp(1.25rem,4vw,4.5rem)] pb-[clamp(3.25rem,8vw,5.5rem)]">
-        <p className="mb-4 text-[0.65rem] font-medium tracking-[0.22em] text-champagne-soft uppercase">Eid · Lahore</p>
+        <p className="mb-4 text-[0.65rem] font-medium tracking-[0.22em] text-champagne-soft uppercase">{hero.eyebrow}</p>
         <h1 className="max-w-[11ch] font-serif text-[length:var(--text-display)] leading-[0.94] font-normal">
-          Woven with <em className="text-champagne-soft italic">tradition & grace</em>
+          {hero.headlineLead}
+          {hero.headlineEmphasis ? (
+            <>
+              {" "}
+              <em className="text-champagne-soft italic">{hero.headlineEmphasis}</em>
+            </>
+          ) : null}
         </h1>
         <p className="mt-6 flex items-center gap-3 text-[0.65rem] tracking-[0.2em] text-paper/70 uppercase">
           <span aria-hidden className="h-px w-7 bg-gold-line" />
-          Lahore · Contemporary pret
+          {hero.subline}
         </p>
-        <p className="mt-6 max-w-[34ch] text-[1.02rem] leading-relaxed text-paper/90">
-          A Pakistani womenswear house for celebration and the everyday — lawn, chiffon, and stitched silhouettes
-          with an international fashion-house calm.
-        </p>
+        <p className="mt-6 max-w-[34ch] text-[1.02rem] leading-relaxed text-paper/90">{hero.body}</p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button asChild variant="light">
-            <Link href="/shop">Explore the Collection</Link>
+            <Link href={hero.primaryCta.href}>{hero.primaryCta.label}</Link>
           </Button>
           <Button asChild variant="overlay">
-            <Link href="/search?q=lawn">Shop unstitched</Link>
+            <Link href={hero.secondaryCta.href}>{hero.secondaryCta.label}</Link>
           </Button>
         </div>
       </div>
