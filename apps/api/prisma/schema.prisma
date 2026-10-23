@@ -232,3 +232,12 @@ model Payment {
 
   @@map("payments")
 }
+
+/// Single storefront homepage document. `id` is always "default".
+model HomepageContent {
+  id        String   @id
+  document  Json
+  updatedAt DateTime @updatedAt
+
+  @@map("homepage_content")
+}

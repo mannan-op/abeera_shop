@@ -1,9 +1,16 @@
 "use server";
 
+import { homepageContentSchema, homepageIssueMessage } from "@abeera/shared";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createSession, destroySession, getAccessToken, verifyCredentials } from "@/lib/admin/auth";
-import { apiClient } from "@/lib/api/client";
+import { ApiError, apiClient } from "@/lib/api/client";
+
+export type HomepageSaveState = {
+  status: "idle" | "saved" | "error";
+  message: string;
+};
 
 export async function loginAction(_prev: string | null, formData: FormData) {
   const email = String(formData.get("username") ?? formData.get("email") ?? "");
@@ -112,4 +119,42 @@ export async function getAdminStats() {
     totalRevenue: number;
     recentOrders: unknown[];
   }>("/admin/dashboard", { token, cache: "no-store" });
+}
+
+export async function saveHomepageAction(
+  _prev: HomepageSaveState,
+  formData: FormData,
+): Promise<HomepageSaveState> {
+  const token = await getAccessToken();
+  if (!token) redirect("/admin/login");
+
+  const raw = formData.get("document");
+  if (typeof raw !== "string") {
+    return { status: "error", message: "The homepage form was empty." };
+  }
+
+  let body: unknown;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    return { status: "error", message: "The homepage form could not be read." };
+  }
+
+  const parsed = homepageContentSchema.safeParse(body);
+  if (!parsed.success) {
+    return { status: "error", message: homepageIssueMessage(parsed.error) };
+  }
+
+  try {
+    await apiClient.put("/admin/homepage", parsed.data, { token });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return { status: "error", message: error.message };
+    }
+    return { status: "error", message: "Could not reach the API to save the homepage." };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin/homepage");
+  return { status: "saved", message: "Saved. The storefront homepage uses this copy." };
 }

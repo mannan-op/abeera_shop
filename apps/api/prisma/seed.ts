@@ -6,7 +6,9 @@ const prisma = new PrismaClient();
 
 runCatalogSeed(prisma)
   .then((result) => {
-    console.log(`Seed completed: ${result.products} products.`);
+    console.log(
+      `Seed completed: ${result.products} products. Homepage ${result.homepageSeeded ? "inserted" : "already present"}.`,
+    );
   })
   .catch((error) => {
     console.error(error);
