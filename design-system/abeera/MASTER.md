@@ -20,7 +20,7 @@ Concept C replaces the cream/burgundy hybrid. Champagne is for hairlines, kicker
 **Active direction:**
 
 - Style: editorial fashion house, flush photography, pill controls
-- Page rhythm: trust ticker, transparent nav over a full-bleed hero, gutterless collection tiles, moment rail, product grid, house story, benefits, newsletter, espresso footer
+- Page rhythm: trust ticker, transparent nav over a full-bleed hero, collection tiles with a 20px gap, moment rail, product grid, house story, benefits, newsletter, espresso footer
 - Type: Instrument Serif (display, italic for emphasis) + Outfit (UI/forms), loaded with `next/font`
 - Palette: ivory `#F4EFE6`, paper `#FAF7F2`, espresso `#1A1613`, ink `#14110E`, champagne `#B0894F`
 
@@ -156,7 +156,7 @@ Full-bleed campaign photograph from the existing Unsplash allowlist. Type sits o
 1. Trust ticker
 2. Editorial nav, transparent over the hero
 3. Full-bleed hero
-4. Three gutterless tiles: Festive Edit, Everyday Pret, Formals — linked to live search and category routes
+4. Three tiles with a 20px gap: Festive Edit, Everyday Pret, Formals — linked to live search and category routes
 5. “Find your edit” moment rail: new arrivals, stitched suits, bestsellers, accessories
 6. Bestsellers grid from `getBestSellers` (new arrivals if that list is empty; lookbook only when the catalog returns nothing)
 7. House story using the existing Lahore / lawn / chiffon / zardozi / pret copy
