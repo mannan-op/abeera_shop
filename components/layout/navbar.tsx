@@ -1,179 +1,108 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { HeartIcon, MenuIcon, SearchIcon, ShoppingBagIcon, UserIcon } from "lucide-react";
+import * as React from "react";
+import { MenuIcon, SearchIcon, ShoppingBagIcon, UserIcon } from "lucide-react";
 
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { categories as catalogCategories, collections } from "@/lib/catalog/products";
-import type { Category } from "@/lib/catalog/types";
 import { useShop } from "@/lib/store/shop";
 import { cn } from "@/lib/utils";
 
-const collectionCopy = [
-  {
-    title: "New Arrivals",
-    href: "/category/new-arrivals",
-    description: "Fresh prints and embroideries for the season.",
-  },
-  {
-    title: "Best Sellers",
-    href: "/shop?sort=featured",
-    description: "The pieces our customers love most.",
-  },
-  {
-    title: "Sale",
-    href: "/category/sale",
-    description: "Previous-season pieces at reduced prices.",
-  },
-];
+export function Navbar({ overlay = false }: { overlay?: boolean }) {
+  const { cartCount, setCartOpen, setSearchOpen, setNavOpen } = useShop();
+  const [pastHero, setPastHero] = React.useState(false);
+  const onPhoto = overlay && !pastHero;
 
-const textLink =
-  "inline-flex h-10 items-center px-3 text-[15px] font-normal normal-case tracking-normal text-foreground transition-colors hover:text-primary";
+  React.useEffect(() => {
+    if (!overlay) return;
 
-export function Navbar({ categories: categorySource }: { categories?: Category[] }) {
-  const { cartCount, wishlist, setCartOpen, setSearchOpen, setNavOpen } = useShop();
-  const featured = collections[0];
-  const categories = (categorySource ?? catalogCategories).filter(
-    (category) => category.slug !== "new-arrivals" && category.slug !== "sale",
-  );
+    const onScroll = () => {
+      const hero = document.getElementById("home-hero");
+      const bottom = hero ? hero.getBoundingClientRect().bottom : 0;
+      setPastHero(bottom < 72);
+    };
+
+    const frame = requestAnimationFrame(onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [overlay]);
 
   return (
-    <header className="border-b border-border/80 bg-background/95 text-foreground backdrop-blur-md">
-      <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-3 items-center gap-2 px-3 md:h-[4.5rem] md:px-10">
-        <div className="flex items-center md:hidden">
+    <header
+      className={cn(
+        "sticky top-0 z-40 transition-[background-color,color,border-color] duration-400",
+        onPhoto
+          ? "border-b border-transparent bg-transparent text-paper"
+          : "border-b border-gold-line/35 bg-background/94 text-ink backdrop-blur-md",
+      )}
+    >
+      <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-[clamp(1.25rem,4vw,4.5rem)] md:h-[4.5rem]">
+        <div className="flex items-center gap-1 md:gap-5">
           <button
             type="button"
             aria-label="Open menu"
-            className="flex size-11 items-center justify-center rounded-full hover:bg-muted"
+            className={cn(
+              "flex size-10 items-center justify-center rounded-full",
+              onPhoto ? "hover:bg-paper/10" : "hover:bg-ink/5",
+            )}
             onClick={() => setNavOpen(true)}
           >
-            <MenuIcon className="size-5" />
+            <MenuIcon className="size-[1.1rem]" strokeWidth={1.35} />
           </button>
+          <Link
+            href="/#collections"
+            className="hidden text-[0.7rem] font-medium tracking-[0.12em] uppercase opacity-85 hover:opacity-100 md:inline"
+          >
+            Collections
+          </Link>
         </div>
 
-        <nav className="hidden items-center md:flex" aria-label="Primary">
-          <Link href="/shop" className={textLink}>
-            Shop
-          </Link>
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className="text-[15px] font-normal normal-case tracking-normal hover:text-primary">
-                  Collections
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <div className="grid w-[640px] grid-cols-[1fr_220px] gap-8">
-                    <ul className="flex flex-col justify-center">
-                      {collectionCopy.map((item) => (
-                        <li key={item.href}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href={item.href}
-                              className="block px-2 py-3 text-foreground normal-case tracking-normal"
-                            >
-                              <span className="block font-serif text-xl font-normal normal-case tracking-normal">
-                                {item.title}
-                              </span>
-                              <span className="mt-1 block text-sm font-normal normal-case tracking-normal text-muted-foreground">
-                                {item.description}
-                              </span>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      ))}
-                      {categories.slice(0, 3).map((category) => (
-                        <li key={category.slug}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href={`/category/${category.slug}`}
-                              className="block px-2 py-2 text-sm normal-case tracking-normal text-foreground"
-                            >
-                              {category.name}
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      ))}
-                    </ul>
-                    <NavigationMenuLink asChild>
-                      <Link href={featured.href} className="group block text-foreground">
-                        <div className="relative aspect-[3/4] overflow-hidden rounded-lg">
-                          <Image
-                            src={featured.image}
-                            alt={featured.name}
-                            fill
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            sizes="220px"
-                          />
-                        </div>
-                        <p className="kicker mt-3">{featured.name}</p>
-                      </Link>
-                    </NavigationMenuLink>
-                  </div>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-          <Link href="/about" className={textLink}>
-            About
-          </Link>
-        </nav>
-
-        <Link
-          href="/"
-          className="justify-self-center font-serif text-[1.85rem] leading-none tracking-[0.12em] text-foreground md:text-[2.45rem]"
-        >
+        <Link href="/" className="font-serif text-[1.65rem] leading-none font-normal tracking-[0.06em] md:text-[1.85rem]">
           Abeera
         </Link>
 
         <div className="flex items-center justify-end gap-0.5">
           <button
             type="button"
-            aria-label="Search"
-            className="flex size-11 items-center justify-center rounded-full hover:bg-muted"
+            className="hidden h-10 items-center px-2 text-[0.7rem] font-medium tracking-[0.12em] uppercase opacity-85 hover:opacity-100 md:inline-flex"
             onClick={() => setSearchOpen(true)}
           >
-            <SearchIcon className="size-5" />
+            Search
+          </button>
+          <button
+            type="button"
+            aria-label="Search"
+            className={cn(
+              "flex size-10 items-center justify-center rounded-full md:hidden",
+              onPhoto ? "hover:bg-paper/10" : "hover:bg-ink/5",
+            )}
+            onClick={() => setSearchOpen(true)}
+          >
+            <SearchIcon className="size-[1.1rem]" strokeWidth={1.35} />
           </button>
           <Link
             href="/account"
             aria-label="Account"
-            className="hidden size-11 items-center justify-center rounded-full hover:bg-muted md:flex"
-          >
-            <UserIcon className="size-5" />
-          </Link>
-          <Link
-            href="/account/wishlist"
-            aria-label="Wishlist"
             className={cn(
-              "relative size-11 items-center justify-center rounded-full hover:bg-muted",
-              "hidden md:flex",
+              "hidden size-10 items-center justify-center rounded-full md:flex",
+              onPhoto ? "hover:bg-paper/10" : "hover:bg-ink/5",
             )}
           >
-            <HeartIcon className="size-5" />
-            {wishlist.length > 0 ? (
-              <span className="absolute top-1.5 right-1.5 min-w-4 rounded-full bg-primary px-1 text-center text-[9px] text-primary-foreground">
-                {wishlist.length}
-              </span>
-            ) : null}
+            <UserIcon className="size-[1.1rem]" strokeWidth={1.35} />
           </Link>
           <button
             type="button"
             aria-label={`Open bag, ${cartCount} items`}
-            className="relative flex size-11 items-center justify-center rounded-full hover:bg-muted"
+            className={cn(
+              "flex h-10 items-center gap-1 rounded-full px-2",
+              onPhoto ? "hover:bg-paper/10" : "hover:bg-ink/5",
+            )}
             onClick={() => setCartOpen(true)}
           >
-            <ShoppingBagIcon className="size-5" />
-            <span className="absolute top-1.5 right-1 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] leading-4 text-primary-foreground">
-              {cartCount}
-            </span>
+            <ShoppingBagIcon className="size-[1.1rem]" strokeWidth={1.35} />
+            <span className="text-[0.65rem] tabular-nums tracking-wide">{cartCount}</span>
           </button>
         </div>
       </div>

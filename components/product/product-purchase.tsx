@@ -154,7 +154,7 @@ export function ProductPurchase({ product }: { product: Product }) {
                   className={cn(
                     "flex h-11 min-w-11 items-center justify-center rounded-full border px-3 text-sm",
                     size === entry
-                      ? "border-gold-ink bg-gold-ink text-ivory"
+                      ? "border-espresso bg-espresso text-paper"
                       : "border-border bg-card text-foreground hover:border-foreground/30",
                   )}
                   onClick={() => setSize(entry)}

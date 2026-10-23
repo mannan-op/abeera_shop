@@ -44,8 +44,8 @@ export function Lookbook({
       <ul className="mt-10 grid gap-5 md:grid-cols-3">
         {edits.map((edit) => (
           <li key={edit.title}>
-            <Link href={edit.href} className="group block overflow-hidden rounded-xl bg-card ring-1 ring-border">
-              <div className="relative aspect-[4/5] bg-blush">
+            <Link href={edit.href} className="group block">
+              <div className="relative aspect-4/5 overflow-hidden bg-blush">
                 <Image
                   src={edit.image}
                   alt={edit.alt}
@@ -54,11 +54,11 @@ export function Lookbook({
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>
-              <div className="p-5">
-                <h3 className="font-serif text-2xl">{edit.title}</h3>
+              <div className="pt-4">
+                <h3 className="font-serif text-2xl font-normal">{edit.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{edit.copy}</p>
-                <span className="mt-4 inline-block text-[12px] tracking-[0.12em] text-primary uppercase">
-                  Explore
+                <span className="mt-4 inline-block border-b border-champagne pb-0.5 text-[0.7rem] tracking-[0.14em] uppercase">
+                  Shop now
                 </span>
               </div>
             </Link>

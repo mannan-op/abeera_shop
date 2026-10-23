@@ -15,8 +15,8 @@ export function MobileNav({ categories }: { categories?: Category[] }) {
     <Sheet open={navOpen} onOpenChange={setNavOpen}>
       <SheetContent side="left" className="w-[min(100%,22rem)] overflow-y-auto bg-background p-8">
         <SheetTitle className="sr-only">Menu</SheetTitle>
-        <p className="font-serif text-3xl tracking-[0.08em]">Abeera</p>
-        <p className="mt-2 text-sm text-muted-foreground">Lahore</p>
+        <p className="font-serif text-[1.85rem] font-normal tracking-[0.06em]">Abeera</p>
+        <p className="mt-2 text-[0.65rem] tracking-[0.16em] text-champagne uppercase">Lahore</p>
         <nav className="mt-10 flex flex-col gap-4">
           <Link href="/shop" className="font-serif text-2xl" onClick={() => setNavOpen(false)}>
             Shop
