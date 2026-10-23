@@ -1,4 +1,6 @@
-import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { createOrderSchema } from "@abeera/shared";
+
 import { OrdersService } from "./orders.service";
 import { CurrentUser } from "../../common/decorators";
 
@@ -7,11 +9,12 @@ export class OrdersController {
   constructor(private orders: OrdersService) {}
 
   @Post()
-  create(
-    @CurrentUser("id") userId: string,
-    @Body() body: { addressId: string; paymentMethod: "JAZZCASH" | "EASYPAISA" | "COD" },
-  ) {
-    return this.orders.create(userId, body.addressId, body.paymentMethod);
+  create(@CurrentUser("id") userId: string, @Body() body: unknown) {
+    const parsed = createOrderSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.issues[0]?.message ?? "Invalid order");
+    }
+    return this.orders.create(userId, parsed.data);
   }
 
   @Get()

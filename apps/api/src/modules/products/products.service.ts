@@ -13,6 +13,9 @@ type ProductFilter = {
   page?: number;
   pageSize?: number;
   search?: string;
+  isNew?: boolean;
+  onSale?: boolean;
+  isBestSeller?: boolean;
 };
 
 const productInclude = {
@@ -38,22 +41,25 @@ export class ProductsService {
     if (filters.category) {
       where.category = { slug: filters.category };
     }
+    if (filters.isNew) where.isNew = true;
+    if (filters.isBestSeller) where.isBestSeller = true;
 
+    const variantSome: Prisma.ProductVariantWhereInput = {};
     if (filters.size) {
-      where.variants = { some: { size: filters.size, soldOut: false } };
+      variantSome.size = filters.size;
+      variantSome.soldOut = false;
     }
-
     if (filters.minPrice || filters.maxPrice) {
-      where.variants = {
-        ...((where.variants as any) ?? {}),
-        some: {
-          ...((where.variants as any)?.some ?? {}),
-          priceInPaisa: {
-            ...(filters.minPrice ? { gte: filters.minPrice } : {}),
-            ...(filters.maxPrice ? { lte: filters.maxPrice } : {}),
-          },
-        },
+      variantSome.priceInPaisa = {
+        ...(filters.minPrice ? { gte: filters.minPrice } : {}),
+        ...(filters.maxPrice ? { lte: filters.maxPrice } : {}),
       };
+    }
+    if (filters.onSale) {
+      variantSome.compareAtPrice = { not: null };
+    }
+    if (Object.keys(variantSome).length > 0) {
+      where.variants = { some: variantSome };
     }
 
     if (filters.search) {
@@ -102,6 +108,15 @@ export class ProductsService {
       pageSize,
       totalPages: Math.ceil(total / pageSize),
     };
+  }
+
+  async findById(id: string) {
+    const product = await this.prisma.product.findFirst({
+      where: { id, deletedAt: null },
+      include: productInclude,
+    });
+    if (!product) throw new NotFoundException("Product not found");
+    return product;
   }
 
   async findBySlug(slug: string) {

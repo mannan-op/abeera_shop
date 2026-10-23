@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Search",
-  description: "Search the Abeera atelier.",
+  description: "Search Abeera for lawn, chiffon, festive pret, and stitched suits.",
 };
 
 export default async function SearchPage({
@@ -23,7 +23,7 @@ export default async function SearchPage({
     <div className="mx-auto max-w-[1440px] px-5 py-12 md:px-10 md:py-16">
       <p className="kicker">Search</p>
       <h1 className="mt-4 font-serif text-5xl">
-        {query ? `Results for “${query}”` : "Search the atelier"}
+        {query ? `Results for “${query}”` : "Search the collection"}
       </h1>
       <div className="mt-8 max-w-xl">
         <SearchBox defaultValue={query} />

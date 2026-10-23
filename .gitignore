@@ -32,3 +32,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 apps/api/dist
+packages/shared/dist

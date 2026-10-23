@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { quoteTotals } from "@abeera/shared";
+
 import { placeOrder } from "@/lib/auth/customer-actions";
 import { shippingMethods } from "@/lib/catalog";
 import { useShop } from "@/lib/store/shop";
@@ -27,7 +29,7 @@ const schema = z.object({
   region: z.string().min(1, "Enter a province"),
   postalCode: z.string().min(1, "Enter a postal code"),
   country: z.string().min(1, "Enter a country"),
-  shipping: z.enum(["standard", "express", "atelier"]),
+  shipping: z.enum(["standard", "express"]),
   payment: z.enum(["COD", "JAZZCASH", "EASYPAISA"]),
   discount: z.string().optional(),
 });
@@ -60,11 +62,16 @@ export function CheckoutForm() {
   });
 
   const shippingId = form.watch("shipping");
-  const shipping = shippingMethods.find((method) => method.id === shippingId) ?? shippingMethods[0];
   const discountCode = form.watch("discount");
-  const discount = discountCode?.toUpperCase() === "ABEERA10" ? Math.round(cartSubtotal * 0.1) : 0;
-  const shippingPrice = cartSubtotal >= 500000 && shippingId === "standard" ? 0 : shipping.price;
-  const total = cartSubtotal - discount + shippingPrice;
+  const quote = quoteTotals({
+    subtotal: cartSubtotal,
+    shippingMethod: shippingId,
+    promoCode: discountCode,
+  });
+  const idempotencyKey = React.useRef(crypto.randomUUID());
+  const discount = quote.ok ? quote.discount : 0;
+  const shippingPrice = quote.ok ? quote.shipping : 0;
+  const total = quote.ok ? quote.total : cartSubtotal;
 
   async function onSubmit(values: Values) {
     setErrorSummary([]);
@@ -79,6 +86,9 @@ export function CheckoutForm() {
       postalCode: values.postalCode,
       country: values.country,
       paymentMethod: values.payment,
+      shippingMethod: values.shipping,
+      promoCode: values.discount,
+      idempotencyKey: idempotencyKey.current,
       items: cart,
     });
 
@@ -94,9 +104,8 @@ export function CheckoutForm() {
       return;
     }
 
-    window.sessionStorage.setItem("abeera:last-order", JSON.stringify(result.order));
     clearCart();
-    router.push("/order-confirmation");
+    router.push(`/order-confirmation?id=${encodeURIComponent(result.order.id)}`);
   }
 
   const onInvalid = () => {
@@ -198,24 +207,25 @@ export function CheckoutForm() {
             value={shippingId}
             onValueChange={(value) => form.setValue("shipping", value as Values["shipping"])}
           >
-            {shippingMethods.map((method) => (
-              <label key={method.id} className="flex items-center justify-between border border-border px-4 py-3">
-                <span className="flex items-center gap-3">
-                  <RadioGroupItem value={method.id} />
-                  <span>
-                    <span className="block text-sm">{method.name}</span>
-                    <span className="text-xs text-muted-foreground">{method.detail}</span>
+            {shippingMethods.map((method) => {
+              const methodQuote = quoteTotals({
+                subtotal: cartSubtotal,
+                shippingMethod: method.id,
+              });
+              const price = methodQuote.ok ? methodQuote.shipping : method.price;
+              return (
+                <label key={method.id} className="flex items-center justify-between border border-border px-4 py-3">
+                  <span className="flex items-center gap-3">
+                    <RadioGroupItem value={method.id} />
+                    <span>
+                      <span className="block text-sm">{method.name}</span>
+                      <span className="text-xs text-muted-foreground">{method.detail}</span>
+                    </span>
                   </span>
-                </span>
-                <span className="text-sm">
-                  {cartSubtotal >= 500000 && method.id === "standard"
-                    ? "Complimentary"
-                    : method.price === 0
-                      ? "Complimentary"
-                      : formatPrice(method.price)}
-                </span>
-              </label>
-            ))}
+                  <span className="text-sm">{price === 0 ? "Complimentary" : formatPrice(price)}</span>
+                </label>
+              );
+            })}
           </RadioGroup>
         </section>
 
@@ -260,6 +270,11 @@ export function CheckoutForm() {
         <div className="mt-4">
           <Label htmlFor="discount">Code</Label>
           <Input id="discount" className="mt-2" {...form.register("discount")} />
+          {!quote.ok ? (
+            <p className="mt-1 text-sm text-destructive" role="alert">
+              {quote.error}
+            </p>
+          ) : null}
         </div>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between">
@@ -281,7 +296,7 @@ export function CheckoutForm() {
             <dd>{formatPrice(total)}</dd>
           </div>
         </dl>
-        <Button type="submit" className="mt-6 w-full" disabled={form.formState.isSubmitting}>
+        <Button type="submit" className="mt-6 w-full" disabled={form.formState.isSubmitting || !quote.ok}>
           {form.formState.isSubmitting ? "Placing order…" : "Place order"}
         </Button>
       </aside>

@@ -7,9 +7,11 @@
     "packages/*"
   ],
   "scripts": {
+    "predev": "npm run build --workspace=@abeera/shared",
     "dev": "next dev",
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:all": "turbo run dev --parallel",
+    "prebuild": "npm run build --workspace=@abeera/shared",
     "build": "next build",
     "build:api": "npm run build --workspace=apps/api",
     "build:all": "turbo run build",

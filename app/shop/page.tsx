@@ -16,7 +16,7 @@ export default async function ShopPage({
   const params = await searchParams;
   return (
     <div className="mx-auto max-w-[1440px] px-5 py-12 md:px-10 md:py-16">
-      <p className="kicker">Our collection</p>
+      <p className="kicker">Lahore</p>
       <h1 className="mt-4 font-serif text-5xl md:text-6xl">Shop</h1>
       <p className="mt-4 max-w-xl text-sm text-muted-foreground">
         From everyday lawn to festive formals — crafted for the modern Pakistani woman.

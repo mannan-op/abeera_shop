@@ -7,6 +7,18 @@ export const FREE_SHIPPING_THRESHOLD = 500000; // 5000 PKR in paisa
 export const STANDARD_SHIPPING = 30000; // 300 PKR
 export const EXPRESS_SHIPPING = 50000; // 500 PKR
 
+export const SHIPPING_METHODS = {
+  standard: STANDARD_SHIPPING,
+  express: EXPRESS_SHIPPING,
+} as const;
+
+export type ShippingMethodId = keyof typeof SHIPPING_METHODS;
+
+/** Percent off subtotal. Unknown codes are rejected by quoteTotals. */
+export const PROMO_CODES: Record<string, number> = {
+  ABEERA10: 10,
+};
+
 export const JWT_ACCESS_EXPIRY = "15m";
 export const JWT_REFRESH_EXPIRY = "7d";
 

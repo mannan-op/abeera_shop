@@ -3,7 +3,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 
-import { getProductByIdSync } from "@/lib/catalog/queries";
+import { useCatalogProducts } from "@/lib/catalog/use-products";
 import type { CartItem, Product } from "@/lib/catalog/types";
 
 type ShopContextValue = {
@@ -239,9 +239,7 @@ export function cartItemFromProduct(
 
 export function useWishlistProducts() {
   const { wishlist } = useShop();
-  return wishlist
-    .map((id) => getProductByIdSync(id))
-    .filter((product): product is Product => Boolean(product));
+  return useCatalogProducts(wishlist);
 }
 
 export { itemKey };

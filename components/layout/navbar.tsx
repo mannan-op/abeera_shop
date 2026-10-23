@@ -1,215 +1,108 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { HeartIcon, MenuIcon, SearchIcon, ShoppingBagIcon, UserIcon } from "lucide-react";
+import * as React from "react";
+import { MenuIcon, SearchIcon, ShoppingBagIcon, UserIcon } from "lucide-react";
 
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { categories as catalogCategories, collections } from "@/lib/catalog/products";
 import { useShop } from "@/lib/store/shop";
 import { cn } from "@/lib/utils";
 
-const collectionCopy = [
-  {
-    title: "New Arrivals",
-    href: "/category/new-arrivals",
-    description: "Fresh prints and embroideries for the season.",
-  },
-  {
-    title: "Best Sellers",
-    href: "/shop?sort=featured",
-    description: "The pieces our customers love most.",
-  },
-  {
-    title: "Sale",
-    href: "/category/sale",
-    description: "Previous-season pieces at reduced prices.",
-  },
-];
+export function Navbar({ overlay = false }: { overlay?: boolean }) {
+  const { cartCount, setCartOpen, setSearchOpen, setNavOpen } = useShop();
+  const [pastHero, setPastHero] = React.useState(false);
+  const onPhoto = overlay && !pastHero;
 
-export function Navbar({ inverted = false }: { inverted?: boolean }) {
-  const { cartCount, wishlist, setCartOpen, setSearchOpen, setNavOpen } = useShop();
-  const featured = collections[0];
-  const categories = catalogCategories.filter(
-    (category) => category.slug !== "new-arrivals" && category.slug !== "sale",
-  );
+  React.useEffect(() => {
+    if (!overlay) return;
 
-  const iconHover = inverted ? "hover:bg-white/10" : "hover:bg-muted/70";
+    const onScroll = () => {
+      const hero = document.getElementById("home-hero");
+      const bottom = hero ? hero.getBoundingClientRect().bottom : 0;
+      setPastHero(bottom < 72);
+    };
+
+    const frame = requestAnimationFrame(onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [overlay]);
 
   return (
     <header
       className={cn(
-        "border-b transition-colors duration-300",
-        inverted
-          ? "border-transparent bg-transparent text-ivory"
-          : "border-border/60 bg-background/95 text-foreground backdrop-blur-md",
+        "sticky top-0 z-40 transition-[background-color,color,border-color] duration-400",
+        onPhoto
+          ? "border-b border-transparent bg-transparent text-paper"
+          : "border-b border-gold-line/35 bg-background/94 text-ink backdrop-blur-md",
       )}
     >
-      <div className="mx-auto flex h-[4.25rem] max-w-[1440px] items-center gap-4 px-5 md:h-20 md:px-10">
-        <div className="flex items-center gap-1 md:hidden">
+      <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-[clamp(1.25rem,4vw,4.5rem)] md:h-[4.5rem]">
+        <div className="flex items-center gap-1 md:gap-5">
           <button
             type="button"
             aria-label="Open menu"
-            className={cn("flex size-11 items-center justify-center", iconHover)}
+            className={cn(
+              "flex size-10 items-center justify-center rounded-full",
+              onPhoto ? "hover:bg-paper/10" : "hover:bg-ink/5",
+            )}
             onClick={() => setNavOpen(true)}
           >
-            <MenuIcon className="size-5" />
+            <MenuIcon className="size-[1.1rem]" strokeWidth={1.35} />
           </button>
-          <button
-            type="button"
-            aria-label="Search"
-            className={cn("flex size-11 items-center justify-center", iconHover)}
-            onClick={() => setSearchOpen(true)}
+          <Link
+            href="/#collections"
+            className="hidden text-[0.7rem] font-medium tracking-[0.12em] uppercase opacity-85 hover:opacity-100 md:inline"
           >
-            <SearchIcon className="size-5" />
-          </button>
+            Collections
+          </Link>
         </div>
 
-        <Link
-          href="/"
-          className={cn(
-            "font-serif text-[1.85rem] leading-none tracking-[0.14em] md:mr-8",
-            inverted && "text-gold",
-          )}
-        >
+        <Link href="/" className="font-serif text-[1.65rem] leading-none font-normal tracking-[0.06em] md:text-[1.85rem]">
           Abeera
         </Link>
 
-        <nav className="hidden flex-1 justify-center md:flex">
-          <NavigationMenu className={cn(inverted && "text-ivory")}>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className={inverted ? "text-ivory hover:text-gold" : undefined}>
-                  Collections
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <div className="grid w-[640px] grid-cols-[1fr_240px] gap-8">
-                    <ul className="flex flex-col justify-center">
-                      {collectionCopy.map((item) => (
-                        <li key={item.href}>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              href={item.href}
-                              className="block px-2 py-3 text-foreground normal-case tracking-normal"
-                            >
-                              <span className="block font-serif text-xl font-normal tracking-normal normal-case">
-                                {item.title}
-                              </span>
-                              <span className="mt-1 block text-sm font-normal tracking-normal text-muted-foreground normal-case">
-                                {item.description}
-                              </span>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      ))}
-                    </ul>
-                    <NavigationMenuLink asChild>
-                      <Link href={featured.href} className="group block text-foreground">
-                        <div className="relative aspect-3/4 overflow-hidden">
-                          <Image
-                            src={featured.image}
-                            alt={featured.name}
-                            fill
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            sizes="240px"
-                          />
-                        </div>
-                        <p className="kicker mt-3">{featured.name}</p>
-                      </Link>
-                    </NavigationMenuLink>
-                  </div>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-              {categories.slice(0, 4).map((category) => (
-                <NavigationMenuItem key={category.slug}>
-                  <NavigationMenuLink asChild>
-                    <Link
-                      href={`/category/${category.slug}`}
-                      className={cn(
-                        "inline-flex h-10 items-center px-3",
-                        inverted && "text-ivory hover:text-gold",
-                      )}
-                    >
-                      {category.name}
-                    </Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              ))}
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild>
-                  <Link
-                    href="/category/sale"
-                    className="inline-flex h-10 items-center px-3 text-gold"
-                  >
-                    Sale
-                  </Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-        </nav>
-
-        <div className="ml-auto flex items-center justify-end gap-0.5">
+        <div className="flex items-center justify-end gap-0.5">
+          <button
+            type="button"
+            className="hidden h-10 items-center px-2 text-[0.7rem] font-medium tracking-[0.12em] uppercase opacity-85 hover:opacity-100 md:inline-flex"
+            onClick={() => setSearchOpen(true)}
+          >
+            Search
+          </button>
           <button
             type="button"
             aria-label="Search"
-            className={cn("hidden size-11 items-center justify-center md:flex", iconHover)}
+            className={cn(
+              "flex size-10 items-center justify-center rounded-full md:hidden",
+              onPhoto ? "hover:bg-paper/10" : "hover:bg-ink/5",
+            )}
             onClick={() => setSearchOpen(true)}
           >
-            <SearchIcon className="size-5" />
+            <SearchIcon className="size-[1.1rem]" strokeWidth={1.35} />
           </button>
           <Link
             href="/account"
             aria-label="Account"
-            className={cn("hidden size-11 items-center justify-center md:flex", iconHover)}
+            className={cn(
+              "hidden size-10 items-center justify-center rounded-full md:flex",
+              onPhoto ? "hover:bg-paper/10" : "hover:bg-ink/5",
+            )}
           >
-            <UserIcon className="size-5" />
-          </Link>
-          <Link
-            href="/account/wishlist"
-            aria-label="Wishlist"
-            className={cn("relative flex size-11 items-center justify-center", iconHover)}
-          >
-            <HeartIcon className="size-5" />
-            {wishlist.length > 0 ? (
-              <span
-                className={cn(
-                  "absolute top-1.5 right-1.5 min-w-4 rounded-full px-1 text-center text-[9px]",
-                  inverted ? "bg-ivory text-primary" : "bg-primary text-primary-foreground",
-                )}
-              >
-                {wishlist.length}
-              </span>
-            ) : null}
+            <UserIcon className="size-[1.1rem]" strokeWidth={1.35} />
           </Link>
           <button
             type="button"
-            aria-label="Open bag"
-            className={cn("relative flex size-11 items-center justify-center", iconHover)}
+            aria-label={`Open bag, ${cartCount} items`}
+            className={cn(
+              "flex h-10 items-center gap-1 rounded-full px-2",
+              onPhoto ? "hover:bg-paper/10" : "hover:bg-ink/5",
+            )}
             onClick={() => setCartOpen(true)}
           >
-            <ShoppingBagIcon className="size-5" />
-            <span
-              className={cn(
-                "absolute top-1.5 right-1.5 min-w-4 rounded-full px-1 text-center text-[9px]",
-                cartCount > 0
-                  ? inverted
-                    ? "bg-ivory text-primary"
-                    : "bg-primary text-primary-foreground"
-                  : inverted
-                    ? "text-ivory/70"
-                    : "text-muted-foreground",
-              )}
-            >
-              {cartCount}
-            </span>
+            <ShoppingBagIcon className="size-[1.1rem]" strokeWidth={1.35} />
+            <span className="text-[0.65rem] tabular-nums tracking-wide">{cartCount}</span>
           </button>
         </div>
       </div>

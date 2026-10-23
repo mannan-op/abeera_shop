@@ -46,11 +46,19 @@ export async function CatalogView({
   const filters = await filtersFromSearch(searchParams, category);
   const result = await listProducts(filters);
   const options = await getCatalogFacets(category);
+  const filtered = ["q", "color", "size", "availability", "min", "max"].some((key) => {
+    const value = searchParams[key];
+    return Array.isArray(value) ? value.some(Boolean) : Boolean(value);
+  });
+
+  if (result.total === 0 && !filtered) {
+    return <ProductGrid products={[]} empty="catalog" />;
+  }
 
   return (
     <div>
       <CatalogToolbar total={result.total} options={options} />
-      <ProductGrid products={result.items} />
+      <ProductGrid products={result.items} empty="filters" />
       {result.pageCount > 1 ? (
         <div className="mt-12 flex justify-center gap-2">
           {Array.from({ length: result.pageCount }, (_, index) => {

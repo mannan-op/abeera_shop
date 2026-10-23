@@ -9,34 +9,37 @@ export function ProductRail({
   title,
   href,
   products,
+  lede,
 }: {
   eyebrow: string;
   title: string;
   href: string;
   products: Product[];
+  lede?: string;
 }) {
+  if (products.length === 0) return null;
+
   return (
     <Reveal>
-      <section className="mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-24">
-        <div className="flex items-end justify-between gap-4">
+      <section className="mx-auto max-w-[1440px] px-[clamp(1.25rem,4vw,4.5rem)] py-[clamp(3.5rem,8vw,6.5rem)]">
+        <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="kicker">{eyebrow}</p>
-            <h2 className="mt-4 font-serif text-4xl md:text-5xl">{title}</h2>
+            {eyebrow ? <p className="kicker">{eyebrow}</p> : null}
+            <h2 className="mt-2 font-serif text-[length:var(--text-title)] leading-[1.05] font-normal">{title}</h2>
+            {lede ? <p className="mt-2 max-w-[36ch] text-muted-foreground">{lede}</p> : null}
           </div>
-          <Link href={href} className="hidden kicker md:inline">
+          <Link
+            href={href}
+            className="border-b border-champagne pb-0.5 text-[0.7rem] tracking-[0.14em] uppercase hover:text-espresso"
+          >
             View all
           </Link>
         </div>
-        <div className="mt-12 flex gap-5 overflow-x-auto pb-2 md:grid md:grid-cols-4 md:overflow-visible">
+        <div className="grid grid-cols-2 gap-[clamp(1.1rem,2.2vw,1.85rem)] lg:grid-cols-4">
           {products.map((product) => (
-            <div key={product.id} className="min-w-[72%] md:min-w-0">
-              <ProductCard product={product} />
-            </div>
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
-        <Link href={href} className="kicker mt-6 inline-block md:hidden">
-          View all
-        </Link>
       </section>
     </Reveal>
   );

@@ -8,7 +8,7 @@ export default function ReturnsPage() {
         Unworn pieces with tags may be returned within 30 days of delivery. Sale items are final. Pierced jewellery and made-to-order pieces cannot be returned.
       </p>
       <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-        Use the prepaid label in your parcel, or start a return from your order page. Refunds return to the original method within five working days of the piece arriving back at the atelier.
+        Start a return from your order page, or write to us and we will arrange collection. Refunds go back to the original method within five working days of the piece arriving in Lahore.
       </p>
     </article>
   );

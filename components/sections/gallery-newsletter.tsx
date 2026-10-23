@@ -32,21 +32,14 @@ export function SocialGallery() {
 
 export function NewsletterSection() {
   return (
-    <Reveal>
-      <section className="px-5 py-20 md:px-10 md:py-28">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="kicker">Stay connected</p>
-          <h2 className="mt-4 font-serif text-4xl md:text-6xl">
-            Join the <em className="italic text-gold">Abeera</em> family
-          </h2>
-          <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-            New launches, restocks, and styling inspiration — delivered to your inbox.
-          </p>
-          <div className="mt-10">
-            <NewsletterForm />
-          </div>
-        </div>
-      </section>
-    </Reveal>
+    <section className="bg-espresso px-[clamp(1.25rem,4vw,4.5rem)] py-[clamp(3.5rem,8vw,6.5rem)] text-center text-paper">
+      <h2 className="font-serif text-[clamp(1.9rem,3.5vw,2.85rem)] font-normal">Letters from Lahore</h2>
+      <p className="mx-auto mt-3 max-w-[34ch] text-paper/80">
+        Eid drops, lawn restocks, and pret worth writing home about. We keep the letters short.
+      </p>
+      <div className="mt-6">
+        <NewsletterForm inverted id="letters-email" />
+      </div>
+    </section>
   );
 }

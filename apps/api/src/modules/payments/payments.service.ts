@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { Injectable, BadRequestException, ForbiddenException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as crypto from "crypto";
 
@@ -11,12 +11,13 @@ export class PaymentsService {
     private config: ConfigService,
   ) {}
 
-  async initiateJazzCash(orderId: string) {
+  async initiateJazzCash(orderId: string, userId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: { payment: true },
     });
     if (!order || !order.payment) throw new BadRequestException("Order not found");
+    if (order.userId !== userId) throw new ForbiddenException("You cannot pay for this order");
     if (order.payment.method !== "JAZZCASH") throw new BadRequestException("Not a JazzCash order");
 
     const merchantId = this.config.get<string>("JAZZCASH_MERCHANT_ID", "");
@@ -57,7 +58,6 @@ export class PaymentsService {
         pp_TxnType: "MWALLET",
         pp_Language: "EN",
         pp_MerchantID: merchantId,
-        pp_Password: password,
         pp_TxnRefNo: txnRefNo,
         pp_Amount: amount,
         pp_TxnCurrency: "PKR",
@@ -69,12 +69,13 @@ export class PaymentsService {
     };
   }
 
-  async initiateEasyPaisa(orderId: string) {
+  async initiateEasyPaisa(orderId: string, userId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: { payment: true },
     });
     if (!order || !order.payment) throw new BadRequestException("Order not found");
+    if (order.userId !== userId) throw new ForbiddenException("You cannot pay for this order");
     if (order.payment.method !== "EASYPAISA") throw new BadRequestException("Not an EasyPaisa order");
 
     const storeId = this.config.get("EASYPAISA_STORE_ID", "");
@@ -94,16 +95,10 @@ export class PaymentsService {
   }
 
   verifyJazzCashHash(body: Record<string, string>) {
-    const salt = this.config.get<string>("JAZZCASH_INTEGRITY_SALT", "");
+    const salt = this.config.get<string>("JAZZCASH_INTEGRITY_SALT", "") ?? "";
     const received = (body.pp_SecureHash ?? "").toLowerCase();
 
-    if (!salt) {
-      if (process.env.NODE_ENV === "production") return false;
-      // Local only: allow unsigned payloads; reject any provided hash without a salt
-      return !received;
-    }
-
-    if (!received) return false;
+    if (!salt || !received) return false;
 
     const sortedKeys = Object.keys(body)
       .filter((key) => key !== "pp_SecureHash" && body[key] !== undefined && body[key] !== "")
@@ -120,23 +115,23 @@ export class PaymentsService {
     if (!txnRefNo) throw new BadRequestException("Missing transaction reference");
 
     if (body.pp_SecureHash || body.pp_TxnRefNo) {
-      const valid = this.verifyJazzCashHash(body);
-      if (!valid) throw new UnauthorizedException("Invalid payment signature");
-    } else if (body.transactionId && body.hash) {
-      const hashKey = this.config.get<string>("EASYPAISA_HASH_KEY", "");
-      if (hashKey) {
-        const expected = crypto
-          .createHmac("sha256", hashKey)
-          .update(`${body.transactionId}${body.amount ?? ""}${body.responseCode ?? ""}`)
-          .digest("hex");
-        if (expected.toLowerCase() !== body.hash.toLowerCase()) {
-          throw new UnauthorizedException("Invalid EasyPaisa signature");
-        }
-      } else if (process.env.NODE_ENV === "production") {
-        throw new UnauthorizedException("Payment hash key not configured");
+      if (!this.verifyJazzCashHash(body)) {
+        throw new UnauthorizedException("Invalid payment signature");
       }
-    } else if (process.env.NODE_ENV === "production") {
-      throw new BadRequestException("Unsigned webhook rejected in production");
+    } else if (body.transactionId || body.hash) {
+      const hashKey = this.config.get<string>("EASYPAISA_HASH_KEY", "") ?? "";
+      if (!hashKey || !body.hash || !body.transactionId) {
+        throw new UnauthorizedException("Invalid EasyPaisa signature");
+      }
+      const expected = crypto
+        .createHmac("sha256", hashKey)
+        .update(`${body.transactionId}${body.amount ?? ""}${body.responseCode ?? ""}`)
+        .digest("hex");
+      if (!safeEqual(expected, body.hash)) {
+        throw new UnauthorizedException("Invalid EasyPaisa signature");
+      }
+    } else {
+      throw new UnauthorizedException("Unsigned webhook rejected");
     }
 
     const payment = await this.prisma.payment.findFirst({
@@ -164,4 +159,11 @@ export class PaymentsService {
 
     return { success };
   }
+}
+
+function safeEqual(expected: string, received: string) {
+  const left = Buffer.from(expected.toLowerCase());
+  const right = Buffer.from(received.toLowerCase());
+  if (left.length !== right.length) return false;
+  return crypto.timingSafeEqual(left, right);
 }

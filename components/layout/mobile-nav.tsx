@@ -3,40 +3,45 @@
 import Link from "next/link";
 
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { categories } from "@/lib/catalog/products";
+import { categories as memoryCategories } from "@/lib/catalog/products";
+import type { Category } from "@/lib/catalog/types";
 import { useShop } from "@/lib/store/shop";
 
-export function MobileNav() {
+export function MobileNav({ categories }: { categories?: Category[] }) {
   const { navOpen, setNavOpen } = useShop();
-  const navCategories = categories;
+  const navCategories = categories ?? memoryCategories;
 
   return (
     <Sheet open={navOpen} onOpenChange={setNavOpen}>
-      <SheetContent side="left" className="w-[min(100%,22rem)] bg-background p-8">
-        <SheetTitle>Menu</SheetTitle>
-        <nav className="mt-12 flex flex-col gap-5">
-          <Link
-            href="/shop"
-            className="text-sm uppercase tracking-[0.18em]"
-            onClick={() => setNavOpen(false)}
-          >
+      <SheetContent side="left" className="w-[min(100%,22rem)] overflow-y-auto bg-background p-8">
+        <SheetTitle className="sr-only">Menu</SheetTitle>
+        <p className="font-serif text-[1.85rem] font-normal tracking-[0.06em]">Abeera</p>
+        <p className="mt-2 text-[0.65rem] tracking-[0.16em] text-champagne uppercase">Lahore</p>
+        <nav className="mt-10 flex flex-col gap-4">
+          <Link href="/shop" className="font-serif text-2xl" onClick={() => setNavOpen(false)}>
             Shop
           </Link>
           {navCategories.map((category) => (
             <Link
               key={category.slug}
               href={`/category/${category.slug}`}
-              className="text-sm uppercase tracking-[0.18em] text-foreground/80"
+              className="font-serif text-2xl text-foreground/85"
               onClick={() => setNavOpen(false)}
             >
               {category.name}
             </Link>
           ))}
-          <Link href="/about" className="mt-6 kicker" onClick={() => setNavOpen(false)}>
-            The House
+          <Link href="/about" className="mt-6 text-sm" onClick={() => setNavOpen(false)}>
+            About
           </Link>
-          <Link href="/account" className="kicker" onClick={() => setNavOpen(false)}>
+          <Link href="/contact" className="text-sm" onClick={() => setNavOpen(false)}>
+            Contact
+          </Link>
+          <Link href="/account" className="text-sm" onClick={() => setNavOpen(false)}>
             Account
+          </Link>
+          <Link href="/account/wishlist" className="text-sm" onClick={() => setNavOpen(false)}>
+            Wishlist
           </Link>
         </nav>
       </SheetContent>

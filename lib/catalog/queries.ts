@@ -1,4 +1,5 @@
 import { collections, products as memoryProducts } from "@/lib/catalog/products";
+import { isCatalogApiRequired } from "@/lib/catalog/source";
 import type {
   Category,
   CategorySlug,
@@ -16,7 +17,48 @@ import {
 } from "@/lib/api/mappers";
 
 const PAGE_SIZE = 12;
-const USE_API = process.env.NEXT_PUBLIC_USE_API !== "false";
+
+/**
+ * `next build` collects page data before any request exists. A catalog host
+ * that is down must not fail that step. The empty value is thrown away with
+ * the build; it is never the sample catalog, and a later request still reads
+ * the API.
+ */
+export class CatalogUnavailableError extends Error {
+  constructor(cause?: unknown) {
+    super("Catalog API is unavailable");
+    this.name = "CatalogUnavailableError";
+    if (cause !== undefined) this.cause = cause;
+  }
+}
+
+function isProductionBuild() {
+  return process.env.NEXT_PHASE === "phase-production-build";
+}
+
+function isFrameworkBailout(error: unknown) {
+  if (typeof error !== "object" || error === null) return false;
+  if ("code" in error && error.code === "NEXT_STATIC_GEN_BAILOUT") return true;
+  if ("digest" in error && typeof error.digest === "string") {
+    return (
+      error.digest.startsWith("NEXT_REDIRECT") ||
+      error.digest.startsWith("NEXT_HTTP_ERROR_FALLBACK") ||
+      error.digest.startsWith("NEXT_NOT_FOUND")
+    );
+  }
+  return false;
+}
+
+async function readCatalog<T>(path: string, empty: T): Promise<T> {
+  if (isProductionBuild()) return empty;
+  try {
+    return await apiClient.get<T>(path, { cache: "no-store" });
+  } catch (error) {
+    if (isFrameworkBailout(error)) throw error;
+    if (error instanceof ApiError) throw error;
+    throw new CatalogUnavailableError(error);
+  }
+}
 
 type Paginated<T> = {
   items: T[];
@@ -27,25 +69,26 @@ type Paginated<T> = {
   pageCount?: number;
 };
 
-async function apiAvailable() {
-  if (!USE_API) return false;
-  try {
-    await apiClient.get("/health", { cache: "no-store" });
-    return true;
-  } catch {
-    return false;
-  }
-}
+const virtualCategories = (): Category[] => [
+  {
+    slug: "new-arrivals",
+    name: "New Arrivals",
+    description: "Fresh designs for the season.",
+    image: "",
+    editorial: "Just landed.",
+  },
+  {
+    slug: "sale",
+    name: "Sale",
+    description: "Previous-season pieces at reduced prices.",
+    image: "",
+    editorial: "While it lasts.",
+  },
+];
 
 function memoryCategories(): Category[] {
   return [
-    {
-      slug: "new-arrivals",
-      name: "New Arrivals",
-      description: "Fresh designs for the season.",
-      image: "",
-      editorial: "Just landed.",
-    },
+    virtualCategories()[0],
     {
       slug: "stitched-suits",
       name: "Stitched Suits",
@@ -60,30 +103,20 @@ function memoryCategories(): Category[] {
       image: "",
       editorial: "The details.",
     },
-    {
-      slug: "sale",
-      name: "Sale",
-      description: "Previous-season pieces at reduced prices.",
-      image: "",
-      editorial: "While it lasts.",
-    },
+    virtualCategories()[1],
   ];
 }
 
 export async function getCategories(): Promise<Category[]> {
-  try {
-    if (!(await apiAvailable())) return memoryCategories();
-    const rows = await apiClient.get<
-      { id: string; slug: string; name: string; description: string; image: string | null; sortOrder: number }[]
-    >("/categories");
-    const mapped = rows.map(mapApiCategory);
-    const extras = memoryCategories().filter(
-      (c) => c.slug === "new-arrivals" || c.slug === "sale",
-    );
-    return [...extras, ...mapped.filter((c) => c.slug !== "new-arrivals" && c.slug !== "sale")];
-  } catch {
-    return memoryCategories();
-  }
+  if (!isCatalogApiRequired()) return memoryCategories();
+  const rows = await readCatalog<
+    { id: string; slug: string; name: string; description: string; image: string | null; sortOrder: number }[]
+  >("/categories", []);
+  const mapped = rows.map(mapApiCategory);
+  const virtual = virtualCategories().filter(
+    (category) => !mapped.some((row) => row.slug === category.slug),
+  );
+  return [...virtual, ...mapped];
 }
 
 export async function getCategory(slug: string): Promise<Category | undefined> {
@@ -96,54 +129,49 @@ export function getCollections() {
 }
 
 export async function getProduct(slug: string): Promise<Product | undefined> {
-  try {
-    if (await apiAvailable()) {
-      const product = await apiClient.get<ApiProductDetail>(`/products/${slug}`);
-      return mapApiProduct(product);
-    }
-  } catch (error) {
-    if (!(error instanceof ApiError && error.status === 404)) {
-      // fall through to memory
-    }
+  if (!isCatalogApiRequired()) {
+    return memoryProducts.find((product) => product.slug === slug);
   }
-  return memoryProducts.find((product) => product.slug === slug);
+  try {
+    const product = await readCatalog<ApiProductDetail | undefined>(`/products/${slug}`, undefined);
+    if (!product) return undefined;
+    return mapApiProduct(product);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return undefined;
+    throw error;
+  }
 }
 
 export async function getProductById(id: string): Promise<Product | undefined> {
+  if (!isCatalogApiRequired()) return getProductByIdSync(id);
   try {
-    if (await apiAvailable()) {
-      const result = await apiClient.get<Paginated<ApiProductListItem>>(
-        `/products?pageSize=100`,
-      );
-      const match = result.items.find((item) => item.id === id);
-      if (match) {
-        const full = await apiClient.get<ApiProductDetail>(`/products/${match.slug}`);
-        return mapApiProduct(full);
-      }
-    }
-  } catch {
-    // fall through
+    const product = await readCatalog<ApiProductDetail | undefined>(
+      `/products/by-id/${id}`,
+      undefined,
+    );
+    if (!product) return undefined;
+    return mapApiProduct(product);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return undefined;
+    throw error;
   }
-  return getProductByIdSync(id);
 }
 
-/** Sync lookup for client components (wishlist, etc.) */
+/** Sync lookup for the local catalog. Production ids are resolved through the API. */
 export function getProductByIdSync(id: string): Product | undefined {
+  if (isCatalogApiRequired()) return undefined;
   return memoryProducts.find((product) => product.id === id);
 }
 
 export async function getAllProductSlugs() {
-  try {
-    if (await apiAvailable()) {
-      const result = await apiClient.get<Paginated<ApiProductListItem>>(
-        `/products?pageSize=100`,
-      );
-      return result.items.map((item) => item.slug);
-    }
-  } catch {
-    // fall through
-  }
-  return memoryProducts.map((product) => product.slug);
+  if (!isCatalogApiRequired()) return memoryProducts.map((product) => product.slug);
+  const result = await readCatalog<Paginated<ApiProductListItem>>(`/products?pageSize=100`, {
+    items: [],
+    total: 0,
+    page: 1,
+    pageSize: 100,
+  });
+  return result.items.map((item) => item.slug);
 }
 
 export async function getAllCategorySlugs(): Promise<CategorySlug[]> {
@@ -157,31 +185,28 @@ export function getPriceBounds(subset: Product[] = memoryProducts) {
 }
 
 export async function getCatalogFacets(category?: CategorySlug) {
-  try {
-    if (await apiAvailable()) {
-      const params = new URLSearchParams();
-      if (category && category !== "new-arrivals" && category !== "sale") {
-        params.set("category", category);
-      }
-      const filters = await apiClient.get<{ sizes: string[]; min: number; max: number }>(
-        `/products/filters?${params.toString()}`,
-      );
-      return {
-        colors: [] as { name: string; hex: string }[],
-        sizes: filters.sizes,
-        min: filters.min,
-        max: filters.max,
-      };
-    }
-  } catch {
-    // fall through
+  if (!isCatalogApiRequired()) {
+    const subset = memoryProducts.filter((product) => inCategory(product, category));
+    const source = subset.length > 0 ? subset : memoryProducts;
+    return {
+      ...getFilterOptions(source),
+      ...getPriceBounds(source),
+    };
   }
 
-  const subset = memoryProducts.filter((product) => inCategory(product, category));
-  const source = subset.length > 0 ? subset : memoryProducts;
+  const params = new URLSearchParams();
+  if (category && category !== "new-arrivals" && category !== "sale") {
+    params.set("category", category);
+  }
+  const filters = await readCatalog<{ sizes: string[]; min: number; max: number }>(
+    `/products/filters?${params.toString()}`,
+    { sizes: [], min: 0, max: 0 },
+  );
   return {
-    ...getFilterOptions(source),
-    ...getPriceBounds(source),
+    colors: [] as { name: string; hex: string }[],
+    sizes: filters.sizes,
+    min: filters.min,
+    max: filters.max,
   };
 }
 
@@ -266,9 +291,7 @@ function listProductsMemory(filters: ProductFilters = {}) {
     );
   }
   if (sizes?.length) {
-    list = list.filter((product) =>
-      product.sizes.some((size) => sizes.includes(size)),
-    );
+    list = list.filter((product) => product.sizes.some((size) => sizes.includes(size)));
   }
   if (availability === "in-stock") {
     list = list.filter((product) => !product.soldOut);
@@ -298,6 +321,8 @@ function listProductsMemory(filters: ProductFilters = {}) {
 }
 
 export async function listProducts(filters: ProductFilters = {}) {
+  if (!isCatalogApiRequired()) return listProductsMemory(filters);
+
   const {
     category,
     query,
@@ -310,52 +335,38 @@ export async function listProducts(filters: ProductFilters = {}) {
     pageSize = PAGE_SIZE,
   } = filters;
 
-  try {
-    if (await apiAvailable()) {
-      const params = new URLSearchParams();
-      if (category === "new-arrivals") {
-        // API filters by category slug; fetch and filter client-side for virtual cats
-      } else if (category === "sale") {
-        // handled after fetch
-      } else if (category) {
-        params.set("category", category);
-      }
-      if (sizes?.[0]) params.set("size", sizes[0]);
-      if (minPrice !== undefined) params.set("minPrice", String(minPrice));
-      if (maxPrice !== undefined) params.set("maxPrice", String(maxPrice));
-      if (sort) params.set("sort", sort);
-      params.set("page", String(page));
-      params.set("pageSize", String(pageSize));
-      if (query) params.set("search", query);
+  const params = new URLSearchParams();
+  if (category === "new-arrivals") {
+    params.set("isNew", "true");
+  } else if (category === "sale" || availability === "sale") {
+    params.set("onSale", "true");
+  } else if (category) {
+    params.set("category", category);
+  }
+  if (sizes?.[0]) params.set("size", sizes[0]);
+  if (minPrice !== undefined) params.set("minPrice", String(minPrice));
+  if (maxPrice !== undefined) params.set("maxPrice", String(maxPrice));
+  if (sort) params.set("sort", sort);
+  params.set("page", String(page));
+  params.set("pageSize", String(pageSize));
+  if (query) params.set("search", query);
 
-      const result = await apiClient.get<Paginated<ApiProductListItem>>(
-        `/products?${params.toString()}`,
-      );
-
-      let items = result.items.map(mapApiListItem);
-      if (category === "new-arrivals") {
-        items = items.filter((p) => p.isNew);
-      }
-      if (category === "sale" || availability === "sale") {
-        items = items.filter((p) => Boolean(p.compareAtPrice));
-      }
-      if (availability === "in-stock") {
-        items = items.filter((p) => !p.soldOut);
-      }
-
-      return {
-        items,
-        total: result.total,
-        page: result.page,
-        pageSize: result.pageSize,
-        pageCount: result.totalPages ?? Math.max(1, Math.ceil(result.total / result.pageSize)),
-      };
-    }
-  } catch {
-    // fall through
+  const result = await readCatalog<Paginated<ApiProductListItem>>(
+    `/products?${params.toString()}`,
+    { items: [], total: 0, page, pageSize },
+  );
+  let items = result.items.map(mapApiListItem);
+  if (availability === "in-stock") {
+    items = items.filter((product) => !product.soldOut);
   }
 
-  return listProductsMemory(filters);
+  return {
+    items,
+    total: result.total,
+    page: result.page,
+    pageSize: result.pageSize,
+    pageCount: result.totalPages ?? Math.max(1, Math.ceil(result.total / result.pageSize)),
+  };
 }
 
 export async function getNewArrivals(limit = 8) {
@@ -364,17 +375,14 @@ export async function getNewArrivals(limit = 8) {
 }
 
 export async function getBestSellers(limit = 8) {
-  try {
-    if (await apiAvailable()) {
-      const result = await apiClient.get<Paginated<ApiProductListItem>>(
-        `/products?sort=featured&pageSize=${limit}`,
-      );
-      return result.items.map(mapApiListItem).filter((p) => p.isBestSeller).slice(0, limit);
-    }
-  } catch {
-    // fall through
+  if (!isCatalogApiRequired()) {
+    return memoryProducts.filter((product) => product.isBestSeller).slice(0, limit);
   }
-  return memoryProducts.filter((product) => product.isBestSeller).slice(0, limit);
+  const result = await readCatalog<Paginated<ApiProductListItem>>(
+    `/products?sort=featured&isBestSeller=true&pageSize=${limit}`,
+    { items: [], total: 0, page: 1, pageSize: limit },
+  );
+  return result.items.map(mapApiListItem);
 }
 
 export async function getRelated(product: Product, limit = 4) {

@@ -1,23 +1,33 @@
 import Link from "next/link";
 
+const messages: { text: string; href?: string }[] = [
+  { text: "Free delivery over Rs. 5,000" },
+  { text: "Cash on delivery available" },
+  { text: "Eid collection now live", href: "/shop" },
+  { text: "WhatsApp help on product pages", href: "/contact" },
+];
+
 export function AnnouncementBar() {
-  const message = "Free delivery over Rs. 5,000 · Eid Collection now live · Lahore · Details";
+  const loop = [...messages, ...messages];
 
   return (
-    <div className="overflow-hidden bg-primary text-ivory hover:[&_.animate-marquee]:[animation-play-state:paused]">
+    <div className="overflow-hidden bg-espresso text-champagne-soft" role="region" aria-label="Announcements">
       <p className="sr-only">
-        Free delivery over Rs. 5,000.{" "}
-        <Link href="/shipping">Shipping details</Link>
+        Free delivery over Rs. 5,000. Cash on delivery available. Eid collection now live. WhatsApp help on
+        product pages.
       </p>
-      <div className="flex whitespace-nowrap py-2 text-[11px] tracking-[0.18em] uppercase" aria-hidden>
-        <div className="animate-marquee flex min-w-full shrink-0 justify-around">
-          <span className="px-8">{message}</span>
-          <span className="px-8">{message}</span>
-        </div>
-        <div className="animate-marquee flex min-w-full shrink-0 justify-around">
-          <span className="px-8">{message}</span>
-          <span className="px-8">{message}</span>
-        </div>
+      <div aria-hidden className="flex w-max animate-marquee py-2">
+        {loop.map((message, index) => (
+          <span key={`${message.text}-${index}`} className="px-8 text-[0.65rem] tracking-[0.16em] uppercase">
+            {message.href ? (
+              <Link href={message.href} tabIndex={-1} className="hover:text-paper">
+                {message.text}
+              </Link>
+            ) : (
+              message.text
+            )}
+          </span>
+        ))}
       </div>
     </div>
   );

@@ -55,6 +55,9 @@ export const addToCartSchema = z.object({
 export const createOrderSchema = z.object({
   addressId: z.string().uuid(),
   paymentMethod: z.enum(["JAZZCASH", "EASYPAISA", "COD"]),
+  shippingMethod: z.enum(["standard", "express"]),
+  promoCode: z.string().trim().max(40).optional(),
+  idempotencyKey: z.string().trim().min(8).max(80),
 });
 
 export const addressSchema = z.object({

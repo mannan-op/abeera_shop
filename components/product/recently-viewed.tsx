@@ -1,16 +1,13 @@
 "use client";
 
 import { ProductRail } from "@/components/sections/product-rail";
-import { getProductByIdSync } from "@/lib/catalog/queries";
+import { useCatalogProducts } from "@/lib/catalog/use-products";
 import { useShop } from "@/lib/store/shop";
 
 export function RecentlyViewed({ currentId }: { currentId: string }) {
   const { recentlyViewed } = useShop();
-  const products = recentlyViewed
-    .filter((id) => id !== currentId)
-    .map((id) => getProductByIdSync(id))
-    .filter((product): product is NonNullable<typeof product> => Boolean(product))
-    .slice(0, 4);
+  const ids = recentlyViewed.filter((id) => id !== currentId).slice(0, 4);
+  const products = useCatalogProducts(ids);
 
   if (products.length === 0) return null;
 

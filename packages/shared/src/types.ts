@@ -126,6 +126,8 @@ export type OrderDto = {
   items: OrderItemDto[];
   subtotal: number;
   shipping: number;
+  shippingMethod: string;
+  discount: number;
   tax: number;
   total: number;
   address: AddressDto;

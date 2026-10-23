@@ -4,13 +4,8 @@ import { ProductPurchase } from "@/components/product/product-purchase";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
 import { ProductRail } from "@/components/sections/product-rail";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { getAllProductSlugs, getCategory, getProduct, getRelated, reviews } from "@/lib/catalog";
+import { getCategory, getProduct, getRelated, reviews } from "@/lib/catalog";
 import type { Metadata } from "next";
-
-export async function generateStaticParams() {
-  const slugs = await getAllProductSlugs();
-  return slugs.map((slug) => ({ slug }));
-}
 
 export async function generateMetadata({
   params,
@@ -36,7 +31,10 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
   const product = await getProduct(slug);
-  if (!product) notFound();
+  if (!product) {
+    if (process.env.NEXT_PHASE === "phase-production-build") return <main />;
+    notFound();
+  }
   const related = await getRelated(product);
   const category = await getCategory(product.category);
   const productReviews = reviews.filter((review) => review.productId === product.id);

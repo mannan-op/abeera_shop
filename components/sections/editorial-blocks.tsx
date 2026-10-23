@@ -60,24 +60,32 @@ export function CategoryStrip() {
 
 export function BrandStory() {
   return (
-    <Reveal>
-      <section className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 py-20 md:grid-cols-2 md:gap-16 md:px-10 md:py-32">
-        <div className="relative aspect-4/5 overflow-hidden">
-          <Image src={IMG.story} alt="Abeera atelier rails" fill className="object-cover" sizes="50vw" />
-        </div>
-        <div className="max-w-lg">
-          <p className="kicker">The house</p>
-          <h2 className="mt-4 font-serif text-4xl leading-tight md:text-6xl">
-            Fewer pieces. <em className="italic text-gold">Better cloth.</em>
-          </h2>
-          <p className="mt-6 text-base leading-relaxed text-muted-foreground md:text-lg">
-            Abeera began as a small atelier above a courtyard in the Marais. We still cut there — silk from Como, linen from Flanders, cashmere from mills that answer the phone. The brand is named for a woman who dressed as if the room were already enough.
-          </p>
-          <Button asChild variant="outline" className="mt-10">
-            <Link href="/about">Read the story</Link>
-          </Button>
-        </div>
-      </section>
-    </Reveal>
+    <section className="grid bg-paper md:grid-cols-2">
+      <div className="relative min-h-[460px]">
+        <Image
+          src={IMG.banner}
+          alt="Abeera festive campaign"
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
+      </div>
+      <div className="flex flex-col justify-center px-[clamp(1.25rem,4vw,4.5rem)] py-[clamp(2.5rem,6vw,5rem)]">
+        <p className="kicker">The House</p>
+        <h2 className="mt-4 max-w-[16ch] font-serif text-[clamp(2rem,3.5vw,3.2rem)] leading-[1.05] font-normal">
+          A Lahore house for lawn, chiffon, zardozi, and stitched pret
+        </h2>
+        <p className="mt-5 max-w-[38ch] text-muted-foreground">
+          Made for Eid, weddings, and the days in between.
+        </p>
+        <p className="mt-4 max-w-[38ch] text-muted-foreground">
+          Abeera began in Lahore. Lawn comes from Faisalabad, chiffon from mills we trust, and zardozi from artisans
+          who have stitched for generations. The collection stays small on purpose.
+        </p>
+        <Button asChild className="mt-8 w-fit">
+          <Link href="/about">About Abeera</Link>
+        </Button>
+      </div>
+    </section>
   );
 }
