@@ -29,7 +29,7 @@ const tiles = [
 
 export function FeaturedCollections() {
   return (
-    <section id="collections" aria-label="Featured collections" className="mx-auto grid max-w-[1440px] md:grid-cols-3">
+    <section id="collections" aria-label="Featured collections" className="mx-auto grid max-w-[1440px] gap-5 md:grid-cols-3">
       {tiles.map((tile) => (
         <Link key={tile.title} href={tile.href} className="group relative aspect-3/4 overflow-hidden bg-espresso text-paper">
           <Image
