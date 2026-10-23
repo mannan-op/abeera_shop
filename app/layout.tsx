@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { Instrument_Serif, Outfit } from "next/font/google";
 
 import { Providers } from "@/components/providers";
 import { SiteShell } from "@/components/layout/site-shell";
@@ -10,15 +10,16 @@ import type { Category } from "@/lib/catalog/types";
 
 import "./globals.css";
 
-const dmSans = DM_Sans({
+const outfit = Outfit({
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
+const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: "400",
   style: ["normal", "italic"],
   variable: "--font-serif",
   display: "swap",
@@ -52,7 +53,7 @@ export default async function RootLayout({
 }>) {
   if (isComingSoon()) {
     return (
-      <html lang="en" className={`${dmSans.variable} ${cormorant.variable}`}>
+      <html lang="en" className={`${outfit.variable} ${instrumentSerif.variable}`}>
         <body className="min-h-screen bg-background font-sans text-foreground antialiased">
           <Providers>{children}</Providers>
         </body>
@@ -64,7 +65,7 @@ export default async function RootLayout({
   const categories: Category[] | null = isCatalogApiRequired() ? await getCategories() : null;
 
   return (
-    <html lang="en" className={`${dmSans.variable} ${cormorant.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${instrumentSerif.variable}`}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Providers>
           <SiteShell categories={categories} sampleCatalog={sampleCatalog}>

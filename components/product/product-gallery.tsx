@@ -20,7 +20,7 @@ export function ProductGallery({
 
   if (!color || images.length === 0) {
     return (
-      <div className="flex aspect-[3/4] items-end rounded-xl bg-blush p-6">
+      <div className="flex aspect-3/4 items-end bg-blush p-6">
         <p className="font-serif text-3xl text-foreground/70">{product.name}</p>
       </div>
     );
@@ -28,7 +28,7 @@ export function ProductGallery({
 
   return (
     <div className="grid gap-3">
-      <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-blush">
+      <div className="relative aspect-3/4 overflow-hidden bg-blush">
         <Image
           src={images[active] ?? images[0]}
           alt={`${product.name} in ${color.name}`}
@@ -47,7 +47,7 @@ export function ProductGallery({
               aria-label={`View image ${index + 1}`}
               aria-current={active === index}
               className={cn(
-                "relative size-[4.5rem] shrink-0 overflow-hidden rounded-lg border-2 bg-blush",
+                "relative size-[4.5rem] shrink-0 overflow-hidden border bg-blush",
                 active === index ? "border-primary" : "border-transparent",
               )}
               onClick={() => setFrame({ colorName, index })}

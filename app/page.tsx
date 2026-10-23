@@ -1,7 +1,9 @@
 import { EditorialHero } from "@/components/hero/editorial-hero";
-import { CategoryChips } from "@/components/sections/category-chips";
-import { Lookbook } from "@/components/sections/lookbook";
+import { BrandStory } from "@/components/sections/editorial-blocks";
+import { FeaturedCollections } from "@/components/sections/featured-collections";
 import { NewsletterSection } from "@/components/sections/gallery-newsletter";
+import { Lookbook } from "@/components/sections/lookbook";
+import { MomentRail } from "@/components/sections/moment-rail";
 import { ProductRail } from "@/components/sections/product-rail";
 import { TrustStrip } from "@/components/sections/trust-strip";
 import { getBestSellers, getNewArrivals } from "@/lib/catalog";
@@ -9,21 +11,25 @@ import { getBestSellers, getNewArrivals } from "@/lib/catalog";
 export default async function HomePage() {
   const bestsellers = await getBestSellers(4);
   const featured = bestsellers.length > 0 ? bestsellers : await getNewArrivals(4);
+  const loved = bestsellers.length > 0;
 
   return (
     <>
       <EditorialHero />
-      <CategoryChips />
+      <FeaturedCollections />
+      <MomentRail />
       {featured.length > 0 ? (
         <ProductRail
-          eyebrow={bestsellers.length > 0 ? "Most loved" : "Just landed"}
-          title={bestsellers.length > 0 ? "Best Sellers" : "New Arrivals"}
-          href={bestsellers.length > 0 ? "/shop?sort=featured" : "/category/new-arrivals"}
+          eyebrow={loved ? "Bestsellers" : "Just landed"}
+          title={loved ? "Most loved" : "New arrivals"}
+          lede={loved ? "The pieces our customers love most." : "Just landed for the season."}
+          href={loved ? "/shop?sort=featured" : "/category/new-arrivals"}
           products={featured}
         />
       ) : (
         <Lookbook />
       )}
+      <BrandStory />
       <TrustStrip />
       <NewsletterSection />
     </>

@@ -7,6 +7,7 @@ import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { Footer } from "@/components/layout/footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Navbar } from "@/components/layout/navbar";
+import { WhatsAppFab } from "@/components/layout/whatsapp-fab";
 import { SearchDialog } from "@/components/search/search-dialog";
 import type { Category } from "@/lib/catalog/types";
 
@@ -33,6 +34,7 @@ export function SiteShell({
   sampleCatalog?: boolean;
 }) {
   const pathname = usePathname();
+  const home = pathname === "/";
   const checkout = pathname.startsWith("/checkout");
   const admin = pathname.startsWith("/admin");
 
@@ -42,13 +44,12 @@ export function SiteShell({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="sticky top-0 z-50">
-        {sampleCatalog ? <SampleCatalogNotice /> : null}
-        <AnnouncementBar />
-        <Navbar categories={categories ?? undefined} />
-      </div>
+      {sampleCatalog ? <SampleCatalogNotice /> : null}
+      <AnnouncementBar />
+      <Navbar overlay={home} />
       <main className="flex-1">{children}</main>
       <Footer />
+      <WhatsAppFab />
       <CartDrawer />
       <SearchDialog />
       <MobileNav categories={categories ?? undefined} />

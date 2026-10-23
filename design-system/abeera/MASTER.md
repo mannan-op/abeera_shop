@@ -8,21 +8,21 @@
 
 **Project:** Abeera
 **Generated:** 2026-09-03
+**Shipped visual system:** 2026-10-23 — Concept C, Lahore House
 **Category:** Luxury fashion / lifestyle e-commerce
 
 ---
 
 ## Override note
 
-UI/UX Pro Max defaulted to **Liquid Glass** + **Feature-Rich Showcase** + Cormorant/Montserrat.
-Those conflict with the brand brief (no glassmorphism, editorial fashion, not SaaS cards).
+Concept C replaces the cream/burgundy hybrid. Champagne is for hairlines, kickers, and hovers — not large filled blocks.
 
-**Verified direction (2026 refresh):**
+**Active direction:**
 
-- Style: Exaggerated Minimalism + Editorial Grid (`exaggerated-minimalism` + magazine layout)
-- Page rhythm: Hero-centric cinematic overlay, then social proof
-- Type: Instrument Serif (display, italic for emphasis) + Outfit (UI/forms)
-- Palette: warm ivory paper `#F3EEE6`, espresso `#1A1613`, champagne gold `#B0894F`
+- Style: editorial fashion house, flush photography, pill controls
+- Page rhythm: trust ticker, transparent nav over a full-bleed hero, gutterless collection tiles, moment rail, product grid, house story, benefits, newsletter, espresso footer
+- Type: Instrument Serif (display, italic for emphasis) + Outfit (UI/forms), loaded with `next/font`
+- Palette: ivory `#F4EFE6`, paper `#FAF7F2`, espresso `#1A1613`, ink `#14110E`, champagne `#B0894F`
 
 ---
 
@@ -38,38 +38,39 @@ Personality: elegant, minimal, premium, modern, sophisticated, editorial, confid
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#1A1613` | `--color-primary` |
-| On Primary | `#F6F1EA` | `--color-primary-foreground` |
-| Secondary | `#3D342C` | `--color-secondary` |
-| Accent/CTA | `#B0894F` | `--color-gold` |
-| Background | `#F3EEE6` | `--color-background` |
-| Foreground | `#14110E` | `--color-foreground` |
-| Card | `#FAF7F2` | `--color-card` |
-| Ivory | `#FAF7F2` | `--color-ivory` |
-| Muted | `#E8E0D4` | `--color-muted` |
-| Muted Foreground | `#6B6156` | `--color-muted-foreground` |
+| Page / ivory | `#F4EFE6` | `--color-background`, `--color-ivory` |
+| Paper | `#FAF7F2` | `--color-paper`, `--color-card` |
+| Espresso | `#1A1613` | `--color-primary`, `--color-espresso` |
+| On primary | `#FAF7F2` | `--color-primary-foreground` |
+| Ink | `#14110E` | `--color-foreground`, `--color-ink` |
+| Muted text | `#6B6156` | `--color-muted-foreground` |
+| Taupe | `#A89886` | `--color-taupe` |
+| Wash | `#E8E0D4` | `--color-muted`, `--color-blush` |
+| Champagne | `#B0894F` | `--color-champagne`, `--color-gold` |
+| Champagne soft | `#D4BC8E` | `--color-champagne-soft`, `--color-gold-soft` |
+| Hairline gold | `#C4A574` | `--color-gold-line` |
 | Border | `#DDD4C8` | `--color-border` |
-| Destructive | `#B42318` | `--color-destructive` |
+| Destructive | `#9F2D2D` | `--color-destructive` |
 | Ring | `#1A1613` | `--color-ring` |
 
-**Color notes:** Warm ivory paper, espresso ink, champagne gold. Never neon, never purple/pink AI gradients.
+**Color notes:** Ivory page, paper fields, espresso fills. Champagne and soft champagne stay on hairlines, kickers, ticker type, and hovers. Never neon, never purple/pink gradients, no burgundy primary.
 
 ---
 
 ## Typography
 
-- **Display / selected headings:** Instrument Serif (400 + italic). Hero, section titles, product titles, pull quotes. Italic champagne for emphasis.
-- **Body / UI:** Outfit (400–600). Nav, forms, prices, buttons, captions.
-- **Mood:** cinematic, editorial, rich, contemporary
-- **Scale (approx):**
-  - Display: clamp(2.75rem, 8vw, 7.25rem), leading 0.95
-  - H2: 2.5–3.75rem
-  - H3: 1.5rem
-  - Body: 1–1.125rem, leading 1.65
-  - Kicker / overline: 0.6875rem, tracking 0.22em, uppercase, champagne gold
+- **Display / selected headings:** Instrument Serif 400 + italic. Hero, section titles, product names. Italic champagne-soft for emphasis on photography.
+- **Body / UI:** Outfit 400–600. Nav, forms, prices, buttons, captions.
+- **Mood:** cinematic, editorial, quiet
+- **Scale:**
+  - Display: `clamp(2.8rem, 8vw, 6.75rem)`, leading 0.94
+  - Section title: `clamp(2rem, 4vw, 3.35rem)`, leading 1.05
+  - Product name: 1.15rem serif
+  - Body: 0.9375rem, leading 1.65
+  - Kicker: 0.65rem, tracking 0.22em, uppercase, champagne
 
-Buttons: Outfit 500, 12px, tracking 0.12em, uppercase, **pill** (`rounded-full`).
-Nav: Outfit 500, 13px, mixed case, light tracking.
+Buttons: Outfit 500, 0.7rem, tracking 0.14em, uppercase, pill.
+Nav: Outfit 500, 0.7rem, tracking 0.12em, uppercase. Wordmark is Instrument Serif, centered.
 
 ---
 
@@ -102,11 +103,12 @@ Nav: Outfit 500, 13px, mixed case, light tracking.
 
 ### Buttons
 
-- Primary: fill espresso, ivory text, pill. Hover: secondary brown + soft depth.
-- Gold: champagne for sale / subscribe emphasis.
-- Light: ivory fill on photography.
-- Secondary: transparent, 1px ink border, pill. Hover: fill espresso.
-- Height: 48–56px. Min width 44px for icon buttons.
+- Primary: espresso fill, paper text, pill. Hover mixes a little champagne into espresso.
+- Gold: champagne fill for subscribe only.
+- Light: paper fill on photography. Hover shifts to champagne-soft.
+- Overlay: transparent, paper hairline, for the second hero action.
+- Outline: transparent, ink hairline, pill. Hover fills espresso.
+- Height: 48px default, 40px small, 56px large. Icon buttons are 44px circles.
 
 ### Cards / product tiles
 
@@ -117,20 +119,20 @@ Nav: Outfit 500, 13px, mixed case, light tracking.
 
 ### Inputs
 
-- 48px height, 1px border, 0–2px radius, 16px font (no iOS zoom).
+- 48px height, 1px border, pill, 16px font on small screens (no iOS zoom).
 - Focus: 2px ring `--color-ring`, offset 2px.
 - Labels always visible — never placeholder-only.
 
 ### Navigation
 
-- Announcement bar: espresso, ivory 12px, champagne link.
-- Navbar: sticky, ivory/80 + light blur (not liquid glass). Logo **left** in Instrument Serif. Mixed-case links.
-- Mega menu: collections + featured image. Serif titles, not tiny caps.
-- Mobile: Sheet `side="left"` with large serif links.
+- Trust ticker: espresso strip, champagne-soft tracked caps. Messages are the live ones: free delivery over Rs. 5,000, cash on delivery, Eid collection, WhatsApp help on product pages.
+- Navbar: menu and Collections on the left, Abeera wordmark centered, Search, account, and bag on the right. Over the homepage hero it is transparent with paper type. After the hero (and on every other page) it is sticky ivory at 94% with a gold hairline.
+- Menu sheet: left side, serif category links. Wishlist and account stay in the sheet.
+- Bag count sits beside the icon. No filled notification pill.
 
 ### Hero
 
-Cinematic full-bleed: type **on** the photograph. Viewport-filling remaining height, dark gradient scrim for 4.5:1 contrast, oversized Instrument Serif with italic gold emphasis, pill CTAs on the image. `next/image` + `priority`.
+Full-bleed campaign photograph from the existing Unsplash allowlist. Type sits on the image: kicker “Eid · Lahore”, headline “Woven with tradition & grace” with the second phrase in italic champagne-soft, a gold hairline before “Lahore · Contemporary pret”, then Explore the Collection and Shop unstitched. Image eases in; type rises. Both respect `prefers-reduced-motion`. `next/image` with `priority`.
 
 ### Cart / search / filters
 
@@ -151,20 +153,19 @@ Cinematic full-bleed: type **on** the photograph. Viewport-filling remaining hei
 
 ## Page pattern (home)
 
-1. Announcement + nav
-2. Editorial hero (value + lookbook image)
-3. Featured collections
-4. New arrivals
-5. Editorial/promotional banner
-6. Best sellers
-7. Category strip
-8. Brand story
-9. Testimonials (serif pull-quotes, pauseable)
-10. Social gallery
-11. Newsletter
-12. Footer
+1. Trust ticker
+2. Editorial nav, transparent over the hero
+3. Full-bleed hero
+4. Three gutterless tiles: Festive Edit, Everyday Pret, Formals — linked to live search and category routes
+5. “Find your edit” moment rail: new arrivals, stitched suits, bestsellers, accessories
+6. Bestsellers grid from `getBestSellers` (new arrivals if that list is empty; lookbook only when the catalog returns nothing)
+7. House story using the existing Lahore / lawn / chiffon / zardozi / pret copy
+8. Benefits: free delivery over Rs. 5,000, easy exchange, COD, JazzCash and EasyPaisa
+9. Letters from Lahore
+10. Espresso footer with a gold hairline
+11. WhatsApp button when `NEXT_PUBLIC_WHATSAPP_NUMBER` is set, otherwise the same button goes to `/contact`
 
-CTA: Shop the collection (hero) + newsletter (bottom). Repeat Shop in nav.
+Do not replace API products with a hardcoded demo grid. Do not add founding myths, sustainability claims, or shipping rules that are not already on the site.
 
 ---
 
@@ -174,7 +175,7 @@ CTA: Shop the collection (hero) + newsletter (bottom). Repeat Shop in nav.
 - Purple/pink AI gradients, playful colors
 - Tiny 11px tracked caps as the primary voice
 - Equal 3-up collection grids with captions below
-- Centered 2010s boutique logo lockup
+- Stacked logo-and-tagline lockup (the centered Instrument Serif wordmark is the nav)
 - Emoji icons
 - Hover-only essential actions
 - Placeholder-only form labels
