@@ -3,7 +3,7 @@ import "reflect-metadata";
 import assert from "node:assert/strict";
 import type { INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 import { AppModule } from "../src/app.module";
 import { configureApp } from "../src/main";
@@ -19,6 +19,7 @@ async function main() {
   let categoryId = "";
   let productId = "";
   let variantId = "";
+  let restoreHomepage: (() => Promise<void>) | undefined;
 
   try {
     app = await NestFactory.create(AppModule, { logger: ["error"] });
@@ -62,6 +63,68 @@ async function main() {
     assert.equal(customerAdmin.status, 403);
     const adminDash = await json(base, "/admin/dashboard", { token: adminTokens.accessToken });
     assert.equal(adminDash.status, 200);
+
+    const homepage = await json(base, "/homepage");
+    assert.equal(homepage.status, 200);
+    const homepageBody = homepage.body as {
+      content: { hero: { headlineLead: string; primaryCta: { href: string; label: string } } };
+      source: string;
+    };
+    assert.equal(typeof homepageBody.content.hero.headlineLead, "string");
+    assert.ok(homepageBody.content.hero.headlineLead.length > 0);
+
+    const existingHomepage = await prisma.homepageContent.findUnique({ where: { id: "default" } });
+    restoreHomepage = async () => {
+      if (existingHomepage) {
+        await prisma.homepageContent.update({
+          where: { id: "default" },
+          data: { document: existingHomepage.document as Prisma.InputJsonValue },
+        });
+        return;
+      }
+      await prisma.homepageContent.deleteMany({ where: { id: "default" } });
+    };
+
+    const customerHomepage = await json(base, "/admin/homepage", {
+      method: "PUT",
+      token: customerTokens.accessToken,
+      body: homepageBody.content,
+    });
+    assert.equal(customerHomepage.status, 403);
+    const anonHomepage = await json(base, "/admin/homepage", {
+      method: "PUT",
+      body: homepageBody.content,
+    });
+    assert.equal(anonHomepage.status, 401);
+
+    const badHomepage = await json(base, "/admin/homepage", {
+      method: "PUT",
+      token: adminTokens.accessToken,
+      body: {
+        ...homepageBody.content,
+        hero: {
+          ...homepageBody.content.hero,
+          primaryCta: { label: "Explore", href: "javascript:alert(1)" },
+        },
+      },
+    });
+    assert.equal(badHomepage.status, 400);
+
+    const editedHomepage = JSON.parse(JSON.stringify(homepageBody.content)) as typeof homepageBody.content;
+    editedHomepage.hero.headlineLead = `CMS ${run}`.slice(0, 80);
+    const savedHomepage = await json(base, "/admin/homepage", {
+      method: "PUT",
+      token: adminTokens.accessToken,
+      body: editedHomepage,
+    });
+    assert.equal(savedHomepage.status, 200);
+    assert.equal((savedHomepage.body as { source: string }).source, "stored");
+    const readHomepage = await json(base, "/homepage");
+    assert.equal(readHomepage.status, 200);
+    assert.equal(
+      (readHomepage.body as { content: { hero: { headlineLead: string } } }).content.hero.headlineLead,
+      editedHomepage.hero.headlineLead,
+    );
 
     const rotated = await json(base, "/auth/refresh", {
       method: "POST",
@@ -194,6 +257,7 @@ async function main() {
     if (categoryId) await prisma.category.deleteMany({ where: { id: categoryId } });
     await prisma.address.deleteMany({ where: { user: { email: { in: [customerEmail, adminEmail] } } } });
     await prisma.user.deleteMany({ where: { email: { in: [customerEmail, adminEmail] } } });
+    if (restoreHomepage) await restoreHomepage();
     await app?.close();
     await prisma.$disconnect();
   }

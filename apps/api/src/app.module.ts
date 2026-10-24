@@ -13,6 +13,7 @@ import { CartModule } from "./modules/cart/cart.module";
 import { OrdersModule } from "./modules/orders/orders.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { MediaModule } from "./modules/media/media.module";
+import { HomepageModule } from "./modules/homepage/homepage.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { HealthController, RootHealthController } from "./health.controller";
 
@@ -30,6 +31,7 @@ import { HealthController, RootHealthController } from "./health.controller";
     OrdersModule,
     PaymentsModule,
     MediaModule,
+    HomepageModule,
     AdminModule,
   ],
   controllers: [HealthController, RootHealthController],

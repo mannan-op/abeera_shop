@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Reveal } from "@/components/sections/reveal";
 import { NewsletterForm } from "@/components/sections/newsletter-form";
 import { IMG } from "@/lib/catalog";
+import type { HomepageNewsletter } from "@abeera/shared";
 
 const frames = [IMG.gallery1, IMG.gallery2, IMG.gallery3, IMG.gallery4, IMG.gallery5, IMG.gallery6];
 
@@ -30,15 +31,21 @@ export function SocialGallery() {
   );
 }
 
-export function NewsletterSection() {
+export function NewsletterSection({ newsletter }: { newsletter: HomepageNewsletter }) {
   return (
     <section className="bg-espresso px-[clamp(1.25rem,4vw,4.5rem)] py-[clamp(3.5rem,8vw,6.5rem)] text-center text-paper">
-      <h2 className="font-serif text-[clamp(1.9rem,3.5vw,2.85rem)] font-normal">Letters from Lahore</h2>
-      <p className="mx-auto mt-3 max-w-[34ch] text-paper/80">
-        Eid drops, lawn restocks, and pret worth writing home about. We keep the letters short.
-      </p>
+      <h2 className="font-serif text-[clamp(1.9rem,3.5vw,2.85rem)] font-normal">{newsletter.title}</h2>
+      <p className="mx-auto mt-3 max-w-[34ch] text-paper/80">{newsletter.lede}</p>
       <div className="mt-6">
-        <NewsletterForm inverted id="letters-email" />
+        <NewsletterForm
+          inverted
+          id="letters-email"
+          emailLabel={newsletter.emailLabel}
+          placeholder={newsletter.placeholder}
+          submitLabel={newsletter.submitLabel}
+          sendingLabel={newsletter.sendingLabel}
+          successMessage={newsletter.successMessage}
+        />
       </div>
     </section>
   );

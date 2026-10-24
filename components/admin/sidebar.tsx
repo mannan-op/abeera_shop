@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3Icon, BoxIcon, LogOutIcon, ShoppingCartIcon } from "lucide-react";
+import { BarChart3Icon, BoxIcon, LogOutIcon, PanelsTopLeftIcon, ShoppingCartIcon } from "lucide-react";
 
 import { logoutAction } from "@/lib/admin/actions";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: BarChart3Icon },
+  { href: "/admin/homepage", label: "Homepage", icon: PanelsTopLeftIcon },
   { href: "/admin/products", label: "Products", icon: BoxIcon },
   { href: "/admin/orders", label: "Orders", icon: ShoppingCartIcon },
 ];

@@ -10,12 +10,14 @@ export function ProductRail({
   href,
   products,
   lede,
+  viewAllLabel = "View all",
 }: {
   eyebrow: string;
   title: string;
   href: string;
   products: Product[];
   lede?: string;
+  viewAllLabel?: string;
 }) {
   if (products.length === 0) return null;
 
@@ -32,7 +34,7 @@ export function ProductRail({
             href={href}
             className="border-b border-champagne pb-0.5 text-[0.7rem] tracking-[0.14em] uppercase hover:text-espresso"
           >
-            View all
+            {viewAllLabel}
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-[clamp(1.1rem,2.2vw,1.85rem)] lg:grid-cols-4">

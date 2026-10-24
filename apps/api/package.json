@@ -6,7 +6,7 @@
     "prebuild": "npm run build --workspace=@abeera/shared",
     "build": "tsc -p tsconfig.json --incremental false",
     "dev": "npm run build --workspace=@abeera/shared && nest start --watch",
-    "test": "ts-node --project tsconfig.test.json --transpile-only test/seed-access.test.ts && ts-node --project tsconfig.test.json --transpile-only -r ./test/env.ts test/commerce.test.ts",
+    "test": "npm run build --workspace=@abeera/shared && ts-node --project tsconfig.test.json --transpile-only test/seed-access.test.ts && ts-node --project tsconfig.test.json --transpile-only test/homepage-content.test.ts && ts-node --project tsconfig.test.json --transpile-only -r ./test/env.ts test/commerce.test.ts",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "db:generate": "prisma generate",

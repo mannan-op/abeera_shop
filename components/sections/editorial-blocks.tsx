@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { CmsImage } from "@/components/media/cms-image";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/sections/reveal";
 import { IMG } from "@/lib/catalog";
+import type { HomepageBrandStory } from "@abeera/shared";
 
 export function EditorialBanner() {
   return (
@@ -58,32 +60,26 @@ export function CategoryStrip() {
   );
 }
 
-export function BrandStory() {
+export function BrandStory({ story }: { story: HomepageBrandStory }) {
   return (
     <section className="grid bg-paper md:grid-cols-2">
       <div className="relative min-h-[460px]">
-        <Image
-          src={IMG.banner}
-          alt="Abeera festive campaign"
-          fill
+        <CmsImage
+          src={story.imageUrl}
+          alt={story.imageAlt}
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>
       <div className="flex flex-col justify-center px-[clamp(1.25rem,4vw,4.5rem)] py-[clamp(2.5rem,6vw,5rem)]">
-        <p className="kicker">The House</p>
+        <p className="kicker">{story.kicker}</p>
         <h2 className="mt-4 max-w-[16ch] font-serif text-[clamp(2rem,3.5vw,3.2rem)] leading-[1.05] font-normal">
-          A Lahore house for lawn, chiffon, zardozi, and stitched pret
+          {story.title}
         </h2>
-        <p className="mt-5 max-w-[38ch] text-muted-foreground">
-          Made for Eid, weddings, and the days in between.
-        </p>
-        <p className="mt-4 max-w-[38ch] text-muted-foreground">
-          Abeera began in Lahore. Lawn comes from Faisalabad, chiffon from mills we trust, and zardozi from artisans
-          who have stitched for generations. The collection stays small on purpose.
-        </p>
+        <p className="mt-5 max-w-[38ch] text-muted-foreground">{story.lede}</p>
+        <p className="mt-4 max-w-[38ch] text-muted-foreground">{story.body}</p>
         <Button asChild className="mt-8 w-fit">
-          <Link href="/about">About Abeera</Link>
+          <Link href={story.ctaHref}>{story.ctaLabel}</Link>
         </Button>
       </div>
     </section>

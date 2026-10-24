@@ -16,6 +16,8 @@ export const apiClient = {
     api.post<T>(path, body, { cache: "no-store", ...opts }),
   patch: <T>(path: string, body?: unknown, opts?: FetchOptions) =>
     api.patch<T>(path, body, { cache: "no-store", ...opts }),
+  put: <T>(path: string, body?: unknown, opts?: FetchOptions) =>
+    api.put<T>(path, body, { cache: "no-store", ...opts }),
   delete: <T>(path: string, opts?: FetchOptions) =>
     api.delete<T>(path, { cache: "no-store", ...opts }),
 };
