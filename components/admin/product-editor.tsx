@@ -265,7 +265,7 @@ export function ProductEditor({
             </div>
           </Card>
 
-          <Card title="Sizes, prices & stock" description="One row for each colour and size. Leave Sale price empty unless it's discounted — the shop then shows the price struck through.">
+          <Card title="Sizes, prices & stock" description="One row for each colour and size. Price is the original. Sale price is optional — customers pay that instead, and the original is kept as the compare-at price, shown crossed out.">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-[13px]">
                 <thead>
@@ -273,7 +273,7 @@ export function ProductEditor({
                     <th className="pb-2 font-medium">Colour</th>
                     <th className="pb-2 font-medium">Size</th>
                     <th className="pb-2 font-medium">Price (Rs)</th>
-                    <th className="pb-2 font-medium">Sale price</th>
+                    <th className="pb-2 font-medium">Sale price (Rs)</th>
                     <th className="pb-2 font-medium">Stock</th>
                     <th className="pb-2 font-medium">Sold out</th>
                     <th className="pb-2" />

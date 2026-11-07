@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { quoteTotals, type ShippingRates } from "@abeera/shared";
 
-import { placeOrder } from "@/lib/checkout/actions";
+import { placeOrder, quoteCheckout, type CheckoutQuote } from "@/lib/checkout/actions";
 import { shippingMethods } from "@/lib/catalog";
 import { useShop } from "@/lib/store/shop";
 import { formatPrice, formatPriceAmount } from "@/lib/utils";
@@ -71,16 +71,43 @@ export function CheckoutForm({
 
   const shippingId = form.watch("shipping");
   const discountCode = form.watch("discount");
-  const quote = quoteTotals({
-    subtotal: cartSubtotal,
-    shippingMethod: shippingId,
-    promoCode: discountCode,
-    rates,
-  });
   const idempotencyKey = React.useRef(crypto.randomUUID());
-  const discount = quote.ok ? quote.discount : 0;
-  const shippingPrice = quote.ok ? quote.shipping : 0;
-  const total = quote.ok ? quote.total : cartSubtotal;
+  const [serverQuote, setServerQuote] = React.useState<CheckoutQuote | null>(null);
+  const [quoteError, setQuoteError] = React.useState<string | null>(null);
+  const [quoting, setQuoting] = React.useState(true);
+  const cartKey = cart.map((item) => `${item.variantId ?? item.slug}:${item.color}:${item.size}:${item.quantity}`).join("|");
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const handle = window.setTimeout(() => {
+      setQuoting(true);
+      void quoteCheckout({
+        items: cart,
+        shippingMethod: shippingId,
+        promoCode: discountCode,
+      }).then((result) => {
+        if (cancelled) return;
+        setQuoting(false);
+        if (!result.ok) {
+          setServerQuote(null);
+          setQuoteError(result.error);
+          return;
+        }
+        setQuoteError(null);
+        setServerQuote(result.quote);
+      });
+    }, 250);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [cart, cartKey, discountCode, shippingId]);
+
+  const subtotal = serverQuote?.subtotal ?? cartSubtotal;
+  const discount = serverQuote?.discount ?? 0;
+  const shippingPrice = serverQuote?.shipping ?? 0;
+  const total = serverQuote?.total ?? cartSubtotal;
+  const priced = new Map(serverQuote?.lines.map((line) => [line.variantId, line.unitPrice]) ?? []);
 
   async function onSubmit(values: Values) {
     setErrorSummary([]);
@@ -212,7 +239,7 @@ export function CheckoutForm({
           >
             {shippingMethods.map((method) => {
               const methodQuote = quoteTotals({
-                subtotal: cartSubtotal,
+                subtotal,
                 shippingMethod: method.id,
                 rates,
               });
@@ -262,32 +289,37 @@ export function CheckoutForm({
       <aside className="h-fit rounded-2xl bg-card p-8">
         <h2 className="kicker">Order</h2>
         <ul className="mt-4 space-y-3 text-sm">
-          {cart.map((item) => (
-            <li key={`${item.productId}-${item.color}-${item.size}`} className="flex justify-between gap-3">
-              <span>
-                {item.name} × {item.quantity}
-              </span>
-              <span>{formatPrice(item.price * item.quantity)}</span>
-            </li>
-          ))}
+          {cart.map((item) => {
+            const unit = item.variantId ? (priced.get(item.variantId) ?? item.price) : item.price;
+            return (
+              <li key={`${item.productId}-${item.color}-${item.size}`} className="flex justify-between gap-3">
+                <span>
+                  {item.name} × {item.quantity}
+                </span>
+                <span>{formatPrice(unit * item.quantity)}</span>
+              </li>
+            );
+          })}
         </ul>
         <div className="mt-4">
           <Label htmlFor="discount">Code</Label>
           <Input id="discount" className="mt-2" {...form.register("discount")} />
-          {!quote.ok ? (
+          {quoteError ? (
             <p className="mt-1 text-sm text-destructive" role="alert">
-              {quote.error}
+              {quoteError}
             </p>
+          ) : quoting ? (
+            <p className="mt-1 text-sm text-muted-foreground">Updating the total…</p>
           ) : null}
         </div>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between">
             <dt>Subtotal</dt>
-            <dd>{formatPrice(cartSubtotal)}</dd>
+            <dd>{formatPrice(subtotal)}</dd>
           </div>
           {discount ? (
             <div className="flex justify-between text-gold">
-              <dt>ABEERA10</dt>
+              <dt>{serverQuote?.promoCode ?? "Code"}</dt>
               <dd>−{formatPrice(discount)}</dd>
             </div>
           ) : null}
@@ -300,7 +332,8 @@ export function CheckoutForm({
             <dd>{formatPrice(total)}</dd>
           </div>
         </dl>
-        <Button type="submit" className="mt-6 w-full" disabled={form.formState.isSubmitting || !quote.ok || !codEnabled}>
+        <p className="mt-3 text-xs text-muted-foreground">The total is confirmed from the shop when you place the order.</p>
+        <Button type="submit" className="mt-6 w-full" disabled={form.formState.isSubmitting || quoting || Boolean(quoteError) || !serverQuote || !codEnabled}>
           {form.formState.isSubmitting ? "Placing order…" : "Place order"}
         </Button>
       </aside>

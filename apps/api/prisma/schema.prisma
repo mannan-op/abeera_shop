@@ -39,6 +39,17 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum SaleScope {
+  ALL
+  CATEGORIES
+  PRODUCTS
+}
+
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -68,7 +79,8 @@ model Category {
   /// Show as a circle at the top of /shop.
   showInShop  Boolean @default(true)
 
-  products Product[]
+  products      Product[]
+  saleCampaigns SaleCampaignCategory[]
 
   @@map("categories")
 }
@@ -92,10 +104,11 @@ model Product {
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
 
-  category Category        @relation(fields: [categoryId], references: [id])
-  variants ProductVariant[]
-  images   ProductImage[]
-  reviews  Review[]
+  category      Category               @relation(fields: [categoryId], references: [id])
+  variants      ProductVariant[]
+  images        ProductImage[]
+  reviews       Review[]
+  saleCampaigns SaleCampaignProduct[]
 
   @@index([categoryId])
   @@map("products")
@@ -201,6 +214,8 @@ model Order {
   discount       Int         @default(0)
   tax            Int
   total          Int
+  /// The code accepted for this order, when one was used. Usage is counted on the promo row.
+  promoCode      String?
   idempotencyKey String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
@@ -276,6 +291,71 @@ model MediaAsset {
 
   @@index([createdAt])
   @@map("media_assets")
+}
+
+/// A timed storefront discount. Live only while active and inside startsAt/endsAt.
+model SaleCampaign {
+  id           String       @id @default(uuid())
+  name         String
+  discountType DiscountType
+  /// Percent (1–100) or a fixed amount in paisa.
+  amount       Int
+  startsAt     DateTime
+  endsAt       DateTime
+  active       Boolean      @default(true)
+  scope        SaleScope    @default(ALL)
+  bannerText   String       @default("")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  categories SaleCampaignCategory[]
+  products   SaleCampaignProduct[]
+
+  @@index([active, startsAt, endsAt])
+  @@map("sale_campaigns")
+}
+
+model SaleCampaignCategory {
+  campaignId String
+  categoryId String
+
+  campaign SaleCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  category Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, categoryId])
+  @@index([categoryId])
+  @@map("sale_campaign_categories")
+}
+
+model SaleCampaignProduct {
+  campaignId String
+  productId  String
+
+  campaign SaleCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  product  Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, productId])
+  @@index([productId])
+  @@map("sale_campaign_products")
+}
+
+/// Admin-managed checkout code. ABEERA10 is inserted by migration.
+model PromoCode {
+  id           String       @id @default(uuid())
+  code         String       @unique
+  discountType DiscountType
+  /// Percent (1–100) or a fixed amount in paisa, taken off the merchandise subtotal.
+  amount       Int
+  minSubtotal  Int          @default(0)
+  startsAt     DateTime?
+  expiresAt    DateTime?
+  usageLimit   Int?
+  usedCount    Int          @default(0)
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@map("promo_codes")
 }
 
 /// Single-row JSON documents edited in the admin: "site-settings", "shop-page".

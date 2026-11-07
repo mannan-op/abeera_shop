@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { CatalogView } from "@/components/products/catalog-view";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCategory } from "@/lib/catalog";
+import { getCategory, getSaleBanner } from "@/lib/catalog";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -30,7 +30,7 @@ export default async function CategoryPage({
 }) {
   const { slug } = await params;
   const query = await searchParams;
-  const category = await getCategory(slug);
+  const [category, saleBanner] = await Promise.all([getCategory(slug), slug === "sale" ? getSaleBanner() : Promise.resolve(null)]);
   if (!category) {
     // Page-data collection has no catalog host. Leave a shell; a real request 404s.
     if (process.env.NEXT_PHASE === "phase-production-build") return <main />;
@@ -50,6 +50,11 @@ export default async function CategoryPage({
         {category.editorial}
       </p>
       <h1 className="mt-4 font-serif text-5xl md:text-6xl">{category.name}</h1>
+      {saleBanner ? (
+        <p className="mt-5 max-w-2xl border border-[#e4dccf] bg-[#faf7f2] px-4 py-3 text-sm tracking-wide text-[#2b211c]">
+          {saleBanner}
+        </p>
+      ) : null}
       <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
         {category.description}
       </p>

@@ -161,7 +161,24 @@ export async function runCatalogSeed(prisma: PrismaClient): Promise<CatalogSeedR
   }
 
   const homepageSeeded = await ensureHomepageContent(prisma);
+  await ensureLegacyPromo(prisma);
   return { products, categories: categoryDefs.length, homepageSeeded };
+}
+
+/** Keeps ABEERA10 available on databases created before the sales migration was applied by hand. */
+async function ensureLegacyPromo(prisma: PrismaClient) {
+  await prisma.promoCode.upsert({
+    where: { code: "ABEERA10" },
+    update: {},
+    create: {
+      id: "abeera10-legacy-promo",
+      code: "ABEERA10",
+      discountType: "PERCENT",
+      amount: 10,
+      minSubtotal: 0,
+      active: true,
+    },
+  });
 }
 
 /**

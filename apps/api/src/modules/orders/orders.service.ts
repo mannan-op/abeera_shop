@@ -2,15 +2,20 @@ import { Injectable, BadRequestException, NotFoundException } from "@nestjs/comm
 import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import {
+  effectiveUnitPrice,
   enabledPaymentMethods,
+  promoRejection,
   quoteTotals,
   shippingRates,
   type GuestOrderInput,
   type OrderLookupInput,
+  type OrderQuoteInput,
+  type PromoRule,
 } from "@abeera/shared";
 
 import { PrismaService } from "../../prisma/prisma.service";
 import { MailService } from "../mail/mail.service";
+import { SalesService, toPromoRule } from "../sales/sales.service";
 import { SiteDocumentsService } from "../site/site-documents.service";
 
 const orderInclude = { items: true, payment: true, address: true } as const;
@@ -21,7 +26,38 @@ export class OrdersService {
     private prisma: PrismaService,
     private site: SiteDocumentsService,
     private mail: MailService,
+    private sales: SalesService,
   ) {}
+
+  /** Server-side totals for checkout. Does not reserve stock or use up a code. */
+  async quote(input: OrderQuoteInput) {
+    const settings = await this.site.settings();
+    const { lines, subtotal, now } = await this.merchandise(input.items);
+    const promo = await this.loadPromo(input.promoCode, subtotal, now);
+    const quote = quoteTotals({
+      subtotal,
+      shippingMethod: input.shippingMethod,
+      promo,
+      rates: shippingRates(settings),
+      now,
+    });
+    if (!quote.ok) throw new BadRequestException(quote.error);
+    return {
+      lines: lines.map((line) => ({
+        variantId: line.variant.id,
+        quantity: line.quantity,
+        unitPrice: line.unitPrice,
+        compareAt: line.compareAt,
+      })),
+      subtotal,
+      shipping: quote.shipping,
+      discount: quote.discount,
+      tax: quote.tax,
+      total: quote.total,
+      promoCode: quote.promoCode,
+      shippingMethod: quote.shippingMethod,
+    };
+  }
 
   /** Guest checkout: no account; prices and stock come from the database, never the client. */
   async create(input: GuestOrderInput) {
@@ -44,24 +80,14 @@ export class OrdersService {
       );
     }
 
-    // Merge duplicate lines, then load the real variants.
-    const quantities = new Map<string, number>();
-    for (const line of input.items) quantities.set(line.variantId, (quantities.get(line.variantId) ?? 0) + line.quantity);
-    const variants = await this.prisma.productVariant.findMany({
-      where: { id: { in: [...quantities.keys()] } },
-      include: { product: { include: { images: { take: 1, orderBy: { sortOrder: "asc" } } } } },
-    });
-    if (variants.length !== quantities.size) {
-      throw new BadRequestException("Something in your bag is no longer available. Please remove it and try again.");
-    }
-    const lines = variants.map((variant) => ({ variant, quantity: quantities.get(variant.id)! }));
-
-    const subtotal = lines.reduce((sum, line) => sum + line.variant.priceInPaisa * line.quantity, 0);
+    const { lines, subtotal, now } = await this.merchandise(input.items);
+    const promo = await this.loadPromo(input.promoCode, subtotal, now);
     const quote = quoteTotals({
       subtotal,
       shippingMethod: input.shippingMethod,
-      promoCode: input.promoCode,
+      promo,
       rates: shippingRates(settings),
+      now,
     });
     if (!quote.ok) throw new BadRequestException(quote.error);
 
@@ -77,6 +103,7 @@ export class OrdersService {
           for (const line of lines) {
             await this.takeStock(tx, line.variant.id, line.quantity);
           }
+          if (promo) await this.consumePromo(tx, promo.code, subtotal, now);
 
           const address = await tx.address.create({
             data: {
@@ -106,15 +133,16 @@ export class OrdersService {
               discount: quote.discount,
               tax: quote.tax,
               total: quote.total,
+              promoCode: quote.promoCode,
               items: {
-                create: lines.map(({ variant, quantity }) => ({
+                create: lines.map(({ variant, quantity, unitPrice }) => ({
                   variantId: variant.id,
                   productName: variant.product.name,
                   productSlug: variant.product.slug,
                   productImage: variant.product.images[0]?.url ?? null,
                   color: variant.color,
                   size: variant.size,
-                  price: variant.priceInPaisa,
+                  price: unitPrice,
                   quantity,
                 })),
               },
@@ -249,6 +277,71 @@ export class OrdersService {
       this.prisma.order.count(),
     ]);
     return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  }
+
+  /** Shelf prices plus any live campaign. The client never sends a price. */
+  private async merchandise(items: { variantId: string; quantity: number }[]) {
+    const quantities = new Map<string, number>();
+    for (const line of items) quantities.set(line.variantId, (quantities.get(line.variantId) ?? 0) + line.quantity);
+    const variants = await this.prisma.productVariant.findMany({
+      where: { id: { in: [...quantities.keys()] } },
+      include: { product: { include: { images: { take: 1, orderBy: { sortOrder: "asc" } } } } },
+    });
+    if (variants.length !== quantities.size) {
+      throw new BadRequestException("Something in your bag is no longer available. Please remove it and try again.");
+    }
+    const now = new Date();
+    const campaigns = await this.sales.liveCampaigns(now);
+    const lines = variants.map((variant) => {
+      const priced = effectiveUnitPrice({
+        priceInPaisa: variant.priceInPaisa,
+        compareAtPrice: variant.compareAtPrice,
+        productId: variant.productId,
+        categoryId: variant.product.categoryId,
+        campaigns,
+        now,
+      });
+      return {
+        variant,
+        quantity: quantities.get(variant.id)!,
+        unitPrice: priced.price,
+        compareAt: priced.compareAt,
+      };
+    });
+    const subtotal = lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0);
+    return { lines, subtotal, now };
+  }
+
+  private async loadPromo(raw: string | null | undefined, subtotal: number, now: Date): Promise<PromoRule | null> {
+    const code = raw?.trim().toUpperCase() ?? "";
+    if (!code) return null;
+    const row = await this.prisma.promoCode.findUnique({ where: { code } });
+    if (!row) throw new BadRequestException("Unknown promo code");
+    const promo = toPromoRule(row);
+    const reason = promoRejection(promo, subtotal, now);
+    if (reason) throw new BadRequestException(reason);
+    return promo;
+  }
+
+  /** Increments usage only when the code is still valid. Rolls back with the order. */
+  private async consumePromo(tx: Prisma.TransactionClient, code: string, subtotal: number, now: Date) {
+    const updated = await tx.$queryRaw<Array<{ id: string }>>`
+      UPDATE promo_codes
+      SET "usedCount" = "usedCount" + 1,
+          "updatedAt" = CURRENT_TIMESTAMP
+      WHERE code = ${code}
+        AND active = true
+        AND ("usageLimit" IS NULL OR "usedCount" < "usageLimit")
+        AND ("startsAt" IS NULL OR "startsAt" <= ${now})
+        AND ("expiresAt" IS NULL OR "expiresAt" > ${now})
+        AND "minSubtotal" <= ${subtotal}
+      RETURNING id
+    `;
+    if (updated.length === 1) return;
+    const current = await tx.promoCode.findUnique({ where: { code } });
+    if (!current) throw new BadRequestException("Unknown promo code");
+    const reason = promoRejection(toPromoRule(current), subtotal, now);
+    throw new BadRequestException(reason ?? "This code can no longer be used");
   }
 
   private async takeStock(tx: Prisma.TransactionClient, variantId: string, quantity: number) {

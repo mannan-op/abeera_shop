@@ -31,10 +31,20 @@ async function readError(res: Response, fallback: string) {
   return Array.isArray(body.message) ? body.message.join(", ") : (body.message ?? fallback);
 }
 
-/** Guest checkout: resolves variants, then one public POST /orders. */
-export async function placeOrder(input: PlaceOrderInput): Promise<{ ok: true; orderNumber: string } | Fail> {
-  const items: { variantId: string; quantity: number }[] = [];
-  for (const item of input.items) {
+export type CheckoutQuote = {
+  subtotal: number;
+  shipping: number;
+  discount: number;
+  tax: number;
+  total: number;
+  promoCode: string | null;
+  shippingMethod: string;
+  lines: { variantId: string; quantity: number; unitPrice: number; compareAt: number | null }[];
+};
+
+async function resolveLines(items: CartItem[]): Promise<{ ok: true; lines: { variantId: string; quantity: number }[] } | Fail> {
+  const lines: { variantId: string; quantity: number }[] = [];
+  for (const item of items) {
     let variantId = item.variantId;
     if (!variantId) {
       const res = await fetch(`${API_URL}/products/${encodeURIComponent(item.slug)}`, { cache: "no-store" });
@@ -43,8 +53,42 @@ export async function placeOrder(input: PlaceOrderInput): Promise<{ ok: true; or
       variantId = product.variants.find((v) => v.color === item.color && v.size === item.size)?.id;
       if (!variantId) return { ok: false, error: `Size/colour unavailable for ${item.name}` };
     }
-    items.push({ variantId, quantity: item.quantity });
+    lines.push({ variantId, quantity: item.quantity });
   }
+  return { ok: true, lines };
+}
+
+/** Totals from the API. The bag's stored prices are not sent. */
+export async function quoteCheckout(input: {
+  items: CartItem[];
+  shippingMethod: "standard" | "express";
+  promoCode?: string;
+}): Promise<{ ok: true; quote: CheckoutQuote } | Fail> {
+  const resolved = await resolveLines(input.items);
+  if (!resolved.ok) return resolved;
+  try {
+    const res = await fetch(`${API_URL}/orders/quote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: resolved.lines,
+        shippingMethod: input.shippingMethod,
+        promoCode: input.promoCode?.trim() || undefined,
+      }),
+      cache: "no-store",
+    });
+    if (!res.ok) return { ok: false, error: await readError(res, "Could not update the total") };
+    return { ok: true, quote: (await res.json()) as CheckoutQuote };
+  } catch {
+    return { ok: false, error: "We couldn't reach the shop. Please try again in a moment." };
+  }
+}
+
+/** Guest checkout: resolves variants, then one public POST /orders. */
+export async function placeOrder(input: PlaceOrderInput): Promise<{ ok: true; orderNumber: string } | Fail> {
+  const resolved = await resolveLines(input.items);
+  if (!resolved.ok) return resolved;
+  const items = resolved.lines;
 
   let res: Response;
   try {

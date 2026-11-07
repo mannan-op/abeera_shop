@@ -148,7 +148,7 @@ export async function getProductById(id: string): Promise<Product | undefined> {
   if (!isCatalogApiRequired()) return getProductByIdSync(id);
   try {
     const product = await readCatalog<ApiProductDetail | undefined>(
-      `/products/by-id/${id}`,
+      `/products/by-id/${id}?view=shop`,
       undefined,
     );
     if (!product) return undefined;
@@ -340,10 +340,11 @@ export async function listProducts(filters: ProductFilters = {}) {
   const params = new URLSearchParams();
   if (category === "new-arrivals") {
     params.set("isNew", "true");
-  } else if (category === "sale" || availability === "sale") {
-    params.set("onSale", "true");
-  } else if (category) {
+  } else if (category && category !== "sale") {
     params.set("category", category);
+  }
+  if (category === "sale" || availability === "sale") {
+    params.set("onSale", "true");
   }
   if (sizes?.[0]) params.set("size", sizes[0]);
   if (minPrice !== undefined) params.set("minPrice", String(minPrice));
@@ -410,6 +411,19 @@ export const popularSearches = [
 ];
 
 /** Published reviews for a product: from the API, or the sample reviews in a Next-only preview. */
+/** Banner copy from the live sale, when that sale has any. */
+export async function getSaleBanner(): Promise<string | null> {
+  if (!isCatalogApiRequired()) return null;
+  try {
+    const result = await readCatalog<{ text: string | null }>("/sales/banner", { text: null });
+    const text = result.text?.trim();
+    return text ? text : null;
+  } catch (error) {
+    if (isFrameworkBailout(error)) throw error;
+    return null;
+  }
+}
+
 export async function getProductReviews(product: Product): Promise<Review[]> {
   if (!isCatalogApiRequired()) return sampleReviews.filter((review) => review.productId === product.id);
   try {

@@ -3,7 +3,7 @@ import { Average, Work_Sans } from "next/font/google";
 
 import { Providers } from "@/components/providers";
 import { SiteShell } from "@/components/layout/site-shell";
-import { getCategories } from "@/lib/catalog";
+import { getCategories, getSaleBanner } from "@/lib/catalog";
 import { isComingSoon } from "@/lib/coming-soon";
 import { isCatalogApiRequired, isSampleCatalogPreview } from "@/lib/catalog/source";
 import type { Category } from "@/lib/catalog/types";
@@ -63,16 +63,23 @@ export default async function RootLayout({
   }
 
   const sampleCatalog = isSampleCatalogPreview();
-  const [categories, settings] = await Promise.all([
+  const [categories, settings, saleBanner] = await Promise.all([
     isCatalogApiRequired() ? getCategories() : Promise.resolve<Category[] | null>(null),
     getSiteSettings(),
+    getSaleBanner(),
   ]);
 
   return (
     <html lang="en" className={`${workSans.variable} ${average.variable}`}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Providers>
-          <SiteShell categories={categories} sampleCatalog={sampleCatalog} settings={settings} whatsapp={whatsappDigits(settings)}>
+          <SiteShell
+            categories={categories}
+            sampleCatalog={sampleCatalog}
+            settings={settings}
+            whatsapp={whatsappDigits(settings)}
+            saleBanner={saleBanner}
+          >
             {children}
           </SiteShell>
         </Providers>

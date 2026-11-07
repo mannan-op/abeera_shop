@@ -92,10 +92,10 @@ function colorsFromProduct(product: ApiProductDetail): ProductColor[] {
 }
 
 export function mapApiProduct(product: ApiProductDetail): Product {
-  const prices = product.variants.map((v) => v.priceInPaisa);
-  const compares = product.variants
-    .map((v) => v.compareAtPrice)
-    .filter((v): v is number => v != null);
+  const cheapest = product.variants.reduce<(typeof product.variants)[number] | undefined>(
+    (best, variant) => (!best || variant.priceInPaisa < best.priceInPaisa ? variant : best),
+    undefined,
+  );
   const sizes = [...new Set(product.variants.map((v) => v.size))];
   const soldOut =
     product.variants.length > 0 && product.variants.every((v) => v.soldOut || v.stock <= 0);
@@ -110,8 +110,11 @@ export function mapApiProduct(product: ApiProductDetail): Product {
     materials: product.materials,
     care: product.care,
     category: categorySlug(product.category.slug),
-    price: prices.length ? Math.min(...prices) : 0,
-    compareAtPrice: compares.length ? Math.min(...compares) : undefined,
+    price: cheapest?.priceInPaisa ?? 0,
+    compareAtPrice:
+      cheapest?.compareAtPrice != null && cheapest.compareAtPrice > cheapest.priceInPaisa
+        ? cheapest.compareAtPrice
+        : undefined,
     rating: product.rating,
     reviewCount: product.reviewCount,
     isNew: product.isNew,
@@ -124,6 +127,7 @@ export function mapApiProduct(product: ApiProductDetail): Product {
       color: v.color,
       size: v.size,
       price: v.priceInPaisa,
+      compareAtPrice: v.compareAtPrice != null && v.compareAtPrice > v.priceInPaisa ? v.compareAtPrice : undefined,
       stock: v.stock,
     })),
   };

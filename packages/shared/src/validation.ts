@@ -88,6 +88,16 @@ export const guestOrderSchema = z.object({
   idempotencyKey: z.string().trim().min(8).max(80),
 });
 
+/** Preview checkout totals. Prices are computed on the server from variant ids. */
+export const orderQuoteSchema = z.object({
+  items: z
+    .array(z.object({ variantId: z.string().uuid(), quantity: z.number().int().min(1).max(20) }))
+    .min(1, "Your bag is empty")
+    .max(30),
+  shippingMethod: z.enum(["standard", "express"]),
+  promoCode: z.string().trim().max(40).optional(),
+});
+
 export const orderLookupSchema = z.object({
   orderNumber: z.string().trim().toUpperCase().min(4).max(40),
   email: z.string().trim().toLowerCase().email("Enter a valid email").max(160),
@@ -124,6 +134,7 @@ export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 export type AddToCartInput = z.infer<typeof addToCartSchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type GuestOrderInput = z.infer<typeof guestOrderSchema>;
+export type OrderQuoteInput = z.infer<typeof orderQuoteSchema>;
 export type OrderLookupInput = z.infer<typeof orderLookupSchema>;
 export type AddressInput = z.infer<typeof addressSchema>;
 export type ProductFilterInput = z.infer<typeof productFilterSchema>;

@@ -1,8 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { effectiveUnitPrice, type CampaignRule } from "@abeera/shared";
 
 import { PrismaService } from "../../prisma/prisma.service";
 import { RedisService } from "../../redis/redis.service";
+import { SalesService } from "../sales/sales.service";
 
 type ProductFilter = {
   category?: string;
@@ -139,102 +141,38 @@ export class ProductsService {
   constructor(
     private prisma: PrismaService,
     private redis: RedisService,
+    private sales: SalesService,
   ) {}
 
   async findAll(filters: ProductFilter) {
     const page = filters.page ?? 1;
     const pageSize = filters.pageSize ?? 24;
-    const skip = (page - 1) * pageSize;
+    const now = new Date();
+    const campaigns = await this.sales.liveCampaigns(now);
+    const priceSort = filters.sort === "price-asc" || filters.sort === "price-desc";
+    const memoryPrice = campaigns.length > 0 && (filters.minPrice != null || filters.maxPrice != null);
+    const where = this.buildWhere(filters, campaigns, { ignorePrice: memoryPrice });
 
-    const where: Prisma.ProductWhereInput = { deletedAt: null };
-
-    if (filters.category) {
-      where.category = { slug: filters.category };
-    }
-    if (filters.isNew) where.isNew = true;
-    if (filters.isBestSeller) where.isBestSeller = true;
-
-    const variantSome: Prisma.ProductVariantWhereInput = {};
-    if (filters.size) {
-      variantSome.size = filters.size;
-      variantSome.soldOut = false;
-    }
-    if (filters.minPrice || filters.maxPrice) {
-      variantSome.priceInPaisa = {
-        ...(filters.minPrice ? { gte: filters.minPrice } : {}),
-        ...(filters.maxPrice ? { lte: filters.maxPrice } : {}),
-      };
-    }
-    if (filters.onSale) {
-      variantSome.compareAtPrice = { not: null };
-    }
-    if (Object.keys(variantSome).length > 0) {
-      where.variants = { some: variantSome };
+    if (priceSort || memoryPrice) {
+      return this.findAllPriced(where, filters, campaigns, now);
     }
 
-    if (filters.search) {
-      where.OR = [
-        { name: { contains: filters.search, mode: "insensitive" } },
-        { description: { contains: filters.search, mode: "insensitive" } },
-        { tagline: { contains: filters.search, mode: "insensitive" } },
-      ];
-    }
-
-    let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" };
+    let orderBy: Prisma.ProductOrderByWithRelationInput = { isBestSeller: "desc" };
     switch (filters.sort) {
       case "newest":
         orderBy = { createdAt: "desc" };
-        break;
-      case "price-asc":
-        orderBy = { variants: { _count: "asc" } };
-        break;
-      case "price-desc":
-        orderBy = { variants: { _count: "desc" } };
         break;
       case "rating":
         orderBy = { rating: "desc" };
         break;
       case "featured":
+      case undefined:
       default:
         orderBy = { isBestSeller: "desc" };
         break;
     }
 
-    // Price sorts: Prisma cannot order by a relation's minimum, so order by each
-    // product's lowest variant price in memory, then load just the requested page.
-    if (filters.sort === "price-asc" || filters.sort === "price-desc") {
-      const direction = filters.sort === "price-asc" ? 1 : -1;
-      const candidates = await this.prisma.product.findMany({
-        where,
-        select: { id: true, variants: { select: { priceInPaisa: true } } },
-      });
-      const ordered = candidates
-        .map((product) => ({
-          id: product.id,
-          price: product.variants.length
-            ? Math.min(...product.variants.map((variant) => variant.priceInPaisa))
-            : Number.MAX_SAFE_INTEGER,
-        }))
-        .sort((a, b) => (a.price - b.price) * direction);
-      const pageIds = ordered.slice(skip, skip + pageSize).map((product) => product.id);
-      const rows = await this.prisma.product.findMany({
-        where: { id: { in: pageIds } },
-        include: productInclude,
-      });
-      const byId = new Map(rows.map((row) => [row.id, row]));
-      const pageRows = pageIds.flatMap((id) => {
-        const row = byId.get(id);
-        return row ? [row] : [];
-      });
-      return {
-        items: pageRows.map(this.toListItem),
-        total: candidates.length,
-        page,
-        pageSize,
-        totalPages: Math.ceil(candidates.length / pageSize),
-      };
-    }
-
+    const skip = (page - 1) * pageSize;
     const [items, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
@@ -247,7 +185,7 @@ export class ProductsService {
     ]);
 
     return {
-      items: items.map(this.toListItem),
+      items: items.map((product) => this.toListItem(product, campaigns, now)),
       total,
       page,
       pageSize,
@@ -255,19 +193,21 @@ export class ProductsService {
     };
   }
 
-  async findById(id: string) {
+  async findById(id: string, shop = false) {
     const product = await this.prisma.product.findFirst({
       where: { id, deletedAt: null },
       include: productInclude,
     });
     if (!product) throw new NotFoundException("Product not found");
-    return product;
+    if (!shop) return product;
+    const now = new Date();
+    return this.sales.presentProduct(product, await this.sales.liveCampaigns(now), now);
   }
 
   async findBySlug(slug: string) {
     const cacheKey = `product:${slug}`;
-    const cached = await this.redis.getJson(cacheKey);
-    if (cached) return cached;
+    const cached = await this.redis.getJson<Parameters<ProductsService["withCampaignPrices"]>[0]>(cacheKey);
+    if (cached) return this.withCampaignPrices(cached);
 
     const product = await this.prisma.product.findUnique({
       where: { slug, deletedAt: null },
@@ -285,7 +225,7 @@ export class ProductsService {
     if (!product) throw new NotFoundException("Product not found");
 
     await this.redis.setJson(cacheKey, product, 600);
-    return product;
+    return this.withCampaignPrices(product);
   }
 
   async create(data: ProductInput) {
@@ -392,23 +332,156 @@ export class ProductsService {
   async getFilterOptions(categorySlug?: string) {
     const where: Prisma.ProductWhereInput = { deletedAt: null };
     if (categorySlug) where.category = { slug: categorySlug };
+    const now = new Date();
+    const campaigns = await this.sales.liveCampaigns(now);
 
     const variants = await this.prisma.productVariant.findMany({
       where: { product: where, NOT: { size: { contains: RETIRED_MARK } } },
-      select: { size: true, priceInPaisa: true },
+      select: {
+        size: true,
+        priceInPaisa: true,
+        compareAtPrice: true,
+        productId: true,
+        product: { select: { categoryId: true } },
+      },
     });
 
     const sizes = [...new Set(variants.map((v) => v.size))];
-    const prices = variants.map((v) => v.priceInPaisa);
+    const prices = variants.map(
+      (variant) =>
+        effectiveUnitPrice({
+          priceInPaisa: variant.priceInPaisa,
+          compareAtPrice: variant.compareAtPrice,
+          productId: variant.productId,
+          categoryId: variant.product.categoryId,
+          campaigns,
+          now,
+        }).price,
+    );
     const min = prices.length > 0 ? Math.min(...prices) : 0;
     const max = prices.length > 0 ? Math.max(...prices) : 0;
 
     return { sizes, min, max };
   }
 
-  private toListItem(product: Prisma.ProductGetPayload<{ include: typeof productInclude }>) {
-    const prices = product.variants.map((v) => v.priceInPaisa);
-    const comparePrices = product.variants.map((v) => v.compareAtPrice).filter((v): v is number => v != null);
+  private buildWhere(
+    filters: ProductFilter,
+    campaigns: CampaignRule[],
+    opts: { ignorePrice: boolean },
+  ): Prisma.ProductWhereInput {
+    const where: Prisma.ProductWhereInput = { deletedAt: null };
+    const and: Prisma.ProductWhereInput[] = [];
+
+    if (filters.category) where.category = { slug: filters.category };
+    if (filters.isNew) where.isNew = true;
+    if (filters.isBestSeller) where.isBestSeller = true;
+
+    const variantSome: Prisma.ProductVariantWhereInput = {};
+    if (filters.size) {
+      variantSome.size = filters.size;
+      variantSome.soldOut = false;
+    }
+    if (!opts.ignorePrice && (filters.minPrice || filters.maxPrice)) {
+      variantSome.priceInPaisa = {
+        ...(filters.minPrice ? { gte: filters.minPrice } : {}),
+        ...(filters.maxPrice ? { lte: filters.maxPrice } : {}),
+      };
+    }
+    if (Object.keys(variantSome).length > 0) and.push({ variants: { some: variantSome } });
+
+    if (filters.onSale && !campaigns.some((campaign) => campaign.scope === "ALL")) {
+      const categoryIds = [...new Set(campaigns.filter((c) => c.scope === "CATEGORIES").flatMap((c) => c.categoryIds))];
+      const productIds = [...new Set(campaigns.filter((c) => c.scope === "PRODUCTS").flatMap((c) => c.productIds))];
+      const saleOr: Prisma.ProductWhereInput[] = [{ variants: { some: { compareAtPrice: { not: null } } } }];
+      if (categoryIds.length) saleOr.push({ categoryId: { in: categoryIds } });
+      if (productIds.length) saleOr.push({ id: { in: productIds } });
+      and.push({ OR: saleOr });
+    }
+
+    if (filters.search) {
+      and.push({
+        OR: [
+          { name: { contains: filters.search, mode: "insensitive" } },
+          { description: { contains: filters.search, mode: "insensitive" } },
+          { tagline: { contains: filters.search, mode: "insensitive" } },
+        ],
+      });
+    }
+
+    if (and.length) where.AND = and;
+    return where;
+  }
+
+  /** Price sort, and price filters while a campaign is live, use the effective price. */
+  private async findAllPriced(
+    where: Prisma.ProductWhereInput,
+    filters: ProductFilter,
+    campaigns: CampaignRule[],
+    now: Date,
+  ) {
+    const page = filters.page ?? 1;
+    const pageSize = filters.pageSize ?? 24;
+    const candidates = await this.prisma.product.findMany({
+      where,
+      select: {
+        id: true,
+        categoryId: true,
+        variants: { select: { priceInPaisa: true, compareAtPrice: true } },
+      },
+    });
+    let ranked = candidates.map((product) => ({
+      id: product.id,
+      price: lowestPrice(product, campaigns, now),
+    }));
+    if (filters.minPrice != null) ranked = ranked.filter((row) => row.price >= filters.minPrice!);
+    if (filters.maxPrice != null) ranked = ranked.filter((row) => row.price <= filters.maxPrice!);
+    const direction = filters.sort === "price-desc" ? -1 : 1;
+    if (filters.sort === "price-asc" || filters.sort === "price-desc") {
+      ranked.sort((a, b) => (a.price - b.price) * direction);
+    }
+    const pageIds = ranked.slice((page - 1) * pageSize, page * pageSize).map((row) => row.id);
+    const rows = pageIds.length
+      ? await this.prisma.product.findMany({ where: { id: { in: pageIds } }, include: productInclude })
+      : [];
+    const byId = new Map(rows.map((row) => [row.id, row]));
+    return {
+      items: pageIds.flatMap((id) => {
+        const row = byId.get(id);
+        return row ? [this.toListItem(row, campaigns, now)] : [];
+      }),
+      total: ranked.length,
+      page,
+      pageSize,
+      totalPages: Math.ceil(ranked.length / pageSize),
+    };
+  }
+
+  private async withCampaignPrices<T extends { id: string; categoryId: string; variants: { priceInPaisa: number; compareAtPrice: number | null }[] }>(
+    product: T,
+  ) {
+    const now = new Date();
+    return this.sales.presentProduct(product, await this.sales.liveCampaigns(now), now);
+  }
+
+  private toListItem(
+    product: Prisma.ProductGetPayload<{ include: typeof productInclude }>,
+    campaigns: CampaignRule[],
+    now: Date,
+  ) {
+    const priced = product.variants.map((variant) =>
+      effectiveUnitPrice({
+        priceInPaisa: variant.priceInPaisa,
+        compareAtPrice: variant.compareAtPrice,
+        productId: product.id,
+        categoryId: product.categoryId,
+        campaigns,
+        now,
+      }),
+    );
+    const cheapest = priced.reduce<(typeof priced)[number] | undefined>(
+      (best, row) => (!best || row.price < best.price ? row : best),
+      undefined,
+    );
     const allSoldOut = product.variants.every((v) => v.soldOut);
 
     return {
@@ -421,10 +494,31 @@ export class ProductsService {
       isBestSeller: product.isBestSeller,
       rating: product.rating,
       reviewCount: product.reviewCount,
-      startingPrice: prices.length > 0 ? Math.min(...prices) : 0,
-      compareAtPrice: comparePrices.length > 0 ? Math.min(...comparePrices) : null,
+      startingPrice: cheapest?.price ?? 0,
+      compareAtPrice: cheapest?.compareAt ?? null,
       primaryImage: product.images[0]?.url ?? null,
       soldOut: allSoldOut,
     };
   }
+}
+
+function lowestPrice(
+  product: { id: string; categoryId: string; variants: { priceInPaisa: number; compareAtPrice: number | null }[] },
+  campaigns: CampaignRule[],
+  now: Date,
+) {
+  if (product.variants.length === 0) return Number.MAX_SAFE_INTEGER;
+  return Math.min(
+    ...product.variants.map(
+      (variant) =>
+        effectiveUnitPrice({
+          priceInPaisa: variant.priceInPaisa,
+          compareAtPrice: variant.compareAtPrice,
+          productId: product.id,
+          categoryId: product.categoryId,
+          campaigns,
+          now,
+        }).price,
+    ),
+  );
 }

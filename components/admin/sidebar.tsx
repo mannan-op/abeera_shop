@@ -13,6 +13,8 @@ import {
   SettingsIcon,
   ShoppingCartIcon,
   StoreIcon,
+  TagIcon,
+  TicketIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -39,6 +41,8 @@ const groups = [
   {
     label: "Sales",
     items: [
+      { href: "/admin/sales", label: "Sales", icon: TagIcon },
+      { href: "/admin/promos", label: "Promo codes", icon: TicketIcon },
       { href: "/admin/orders", label: "Orders", icon: ShoppingCartIcon },
       { href: "/admin/customers", label: "Customers", icon: UsersIcon },
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquareIcon, badge: "reviews" as const },
