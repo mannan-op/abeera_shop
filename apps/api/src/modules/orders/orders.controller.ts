@@ -1,27 +1,42 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
-import { createOrderSchema } from "@abeera/shared";
+import { BadRequestException, Body, Controller, Get, HttpCode, Param, Post, Query } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { guestOrderSchema, orderLookupSchema } from "@abeera/shared";
 
 import { OrdersService } from "./orders.service";
-import { CurrentUser } from "../../common/decorators";
+import { CurrentUser, Public } from "../../common/decorators";
 
 @Controller("orders")
 export class OrdersController {
   constructor(private orders: OrdersService) {}
 
+  /** Guest checkout. No account needed. */
+  @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @Post()
-  create(@CurrentUser("id") userId: string, @Body() body: unknown) {
-    const parsed = createOrderSchema.safeParse(body);
+  create(@Body() body: unknown) {
+    const parsed = guestOrderSchema.safeParse(body);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.issues[0]?.message ?? "Invalid order");
     }
-    return this.orders.create(userId, parsed.data);
+    return this.orders.create(parsed.data);
   }
 
+  /** Order number + email on the order. POST keeps the email out of URLs and logs. */
+  @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @HttpCode(200)
+  @Post("lookup")
+  lookup(@Body() body: unknown) {
+    const parsed = orderLookupSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.issues[0]?.message ?? "Enter your order number and email");
+    }
+    return this.orders.lookup(parsed.data);
+  }
+
+  /** Legacy: orders placed by signed-in customers before guest checkout. */
   @Get()
-  findMine(
-    @CurrentUser("id") userId: string,
-    @Query("page") page?: number,
-  ) {
+  findMine(@CurrentUser("id") userId: string, @Query("page") page?: number) {
     return this.orders.findByUser(userId, page ?? 1);
   }
 

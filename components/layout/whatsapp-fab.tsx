@@ -6,8 +6,7 @@ function WhatsAppMark(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-export function WhatsAppFab() {
-  const digits = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, "");
+export function WhatsAppFab({ digits }: { digits: string }) {
   const href = digits ? `https://wa.me/${digits}` : "/contact";
   const external = Boolean(digits);
 

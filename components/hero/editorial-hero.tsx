@@ -24,7 +24,7 @@ export function EditorialHero({ hero }: { hero: HomepageHero }) {
           className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(20,17,14,0.55)_0%,rgba(20,17,14,0.12)_24%,transparent_40%),linear-gradient(105deg,rgba(20,17,14,0.72)_0%,rgba(20,17,14,0.2)_48%,rgba(20,17,14,0.45)_100%)]"
         />
       </div>
-      <div className="animate-rise relative z-[1] mx-auto w-full max-w-[1440px] px-[clamp(1.25rem,4vw,4.5rem)] pb-[clamp(3.25rem,8vw,5.5rem)]">
+      <div className="animate-rise relative z-[1] mx-auto mt-[clamp(5.5rem,14vw,8rem)] w-full max-w-[1440px] px-[clamp(1.25rem,4vw,4.5rem)] pb-[clamp(3.25rem,8vw,5.5rem)]">
         <p className="mb-4 text-[0.65rem] font-medium tracking-[0.22em] text-champagne-soft uppercase">{hero.eyebrow}</p>
         <h1 className="max-w-[11ch] font-serif text-[length:var(--text-display)] leading-[0.94] font-normal">
           {hero.headlineLead}

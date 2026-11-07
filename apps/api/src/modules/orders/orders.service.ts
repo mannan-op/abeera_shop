@@ -1,71 +1,104 @@
 import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
-import { quoteTotals, type CreateOrderInput } from "@abeera/shared";
+import {
+  enabledPaymentMethods,
+  quoteTotals,
+  shippingRates,
+  type GuestOrderInput,
+  type OrderLookupInput,
+} from "@abeera/shared";
 
 import { PrismaService } from "../../prisma/prisma.service";
+import { MailService } from "../mail/mail.service";
+import { SiteDocumentsService } from "../site/site-documents.service";
 
 const orderInclude = { items: true, payment: true, address: true } as const;
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private site: SiteDocumentsService,
+    private mail: MailService,
+  ) {}
 
-  async create(userId: string, input: CreateOrderInput) {
+  /** Guest checkout: no account; prices and stock come from the database, never the client. */
+  async create(input: GuestOrderInput) {
+    const email = input.customer.email;
     const replay = await this.prisma.order.findFirst({
-      where: { userId, idempotencyKey: input.idempotencyKey },
+      where: { customerEmail: email, idempotencyKey: input.idempotencyKey },
       include: orderInclude,
     });
     if (replay) return replay;
 
-    const cartItems = await this.prisma.cartItem.findMany({
-      where: { userId },
-      include: {
-        variant: {
-          include: {
-            product: { include: { images: { take: 1, orderBy: { sortOrder: "asc" } } } },
-          },
-        },
-      },
-    });
-
-    if (cartItems.length === 0) throw new BadRequestException("Cart is empty");
-    if (cartItems.some((item) => item.quantity <= 0)) {
-      throw new BadRequestException("Invalid cart quantity");
+    // Only methods switched on in Site settings are accepted. JazzCash and
+    // Easypaisa stay in the enum and payments module but are not offered.
+    const settings = await this.site.settings();
+    const allowed: string[] = enabledPaymentMethods(settings);
+    if (!allowed.includes(input.paymentMethod)) {
+      throw new BadRequestException(
+        allowed.length
+          ? "That payment method isn't available. Please choose Cash on delivery."
+          : "Checkout is paused: no payment method is switched on.",
+      );
     }
 
-    const address = await this.prisma.address.findFirst({ where: { id: input.addressId, userId } });
-    if (!address) throw new NotFoundException("Address not found");
+    // Merge duplicate lines, then load the real variants.
+    const quantities = new Map<string, number>();
+    for (const line of input.items) quantities.set(line.variantId, (quantities.get(line.variantId) ?? 0) + line.quantity);
+    const variants = await this.prisma.productVariant.findMany({
+      where: { id: { in: [...quantities.keys()] } },
+      include: { product: { include: { images: { take: 1, orderBy: { sortOrder: "asc" } } } } },
+    });
+    if (variants.length !== quantities.size) {
+      throw new BadRequestException("Something in your bag is no longer available. Please remove it and try again.");
+    }
+    const lines = variants.map((variant) => ({ variant, quantity: quantities.get(variant.id)! }));
 
-    const subtotal = cartItems.reduce(
-      (sum, item) => sum + item.variant.priceInPaisa * item.quantity,
-      0,
-    );
+    const subtotal = lines.reduce((sum, line) => sum + line.variant.priceInPaisa * line.quantity, 0);
     const quote = quoteTotals({
       subtotal,
       shippingMethod: input.shippingMethod,
       promoCode: input.promoCode,
+      rates: shippingRates(settings),
     });
     if (!quote.ok) throw new BadRequestException(quote.error);
 
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        return await this.prisma.$transaction(async (tx) => {
+        const order = await this.prisma.$transaction(async (tx) => {
           const existing = await tx.order.findFirst({
-            where: { userId, idempotencyKey: input.idempotencyKey },
+            where: { customerEmail: email, idempotencyKey: input.idempotencyKey },
             include: orderInclude,
           });
-          if (existing) return existing;
+          if (existing) return { order: existing, created: false };
 
-          for (const item of cartItems) {
-            await this.takeStock(tx, item.variantId, item.quantity);
+          for (const line of lines) {
+            await this.takeStock(tx, line.variant.id, line.quantity);
           }
 
-          const order = await tx.order.create({
+          const address = await tx.address.create({
+            data: {
+              label: "Checkout",
+              name: input.customer.name,
+              phone: input.customer.phone,
+              line1: input.address.line1,
+              line2: input.address.line2 || null,
+              city: input.address.city,
+              region: input.address.region,
+              postalCode: input.address.postalCode,
+              country: "Pakistan",
+            },
+          });
+
+          const created = await tx.order.create({
             data: {
               orderNumber: newOrderNumber(),
-              userId,
-              addressId: input.addressId,
+              customerName: input.customer.name,
+              customerEmail: email,
+              customerPhone: input.customer.phone,
+              addressId: address.id,
               idempotencyKey: input.idempotencyKey,
               subtotal,
               shipping: quote.shipping,
@@ -74,15 +107,15 @@ export class OrdersService {
               tax: quote.tax,
               total: quote.total,
               items: {
-                create: cartItems.map((item) => ({
-                  variantId: item.variantId,
-                  productName: item.variant.product.name,
-                  productSlug: item.variant.product.slug,
-                  productImage: item.variant.product.images[0]?.url ?? null,
-                  color: item.variant.color,
-                  size: item.variant.size,
-                  price: item.variant.priceInPaisa,
-                  quantity: item.quantity,
+                create: lines.map(({ variant, quantity }) => ({
+                  variantId: variant.id,
+                  productName: variant.product.name,
+                  productSlug: variant.product.slug,
+                  productImage: variant.product.images[0]?.url ?? null,
+                  color: variant.color,
+                  size: variant.size,
+                  price: variant.priceInPaisa,
+                  quantity,
                 })),
               },
               payment: {
@@ -95,15 +128,16 @@ export class OrdersService {
             },
             include: orderInclude,
           });
-
-          await tx.cartItem.deleteMany({ where: { userId } });
-          return order;
+          return { order: created, created: true };
         });
+        // Queued after commit; a Redis or mail failure never fails the order.
+        if (order.created) this.mail.orderPlaced(order.order.id);
+        return order.order;
       } catch (error) {
         if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
         if (isUniqueOn(error, "idempotencyKey")) {
           const existing = await this.prisma.order.findFirst({
-            where: { userId, idempotencyKey: input.idempotencyKey },
+            where: { customerEmail: email, idempotencyKey: input.idempotencyKey },
             include: orderInclude,
           });
           if (existing) return existing;
@@ -114,6 +148,37 @@ export class OrdersService {
     }
 
     throw new BadRequestException("Could not allocate an order number");
+  }
+
+  /** Public order lookup: the order number and the email on the order must both match. */
+  async lookup(input: OrderLookupInput) {
+    const order = await this.prisma.order.findFirst({
+      where: { orderNumber: input.orderNumber, customerEmail: { equals: input.email, mode: "insensitive" } },
+      include: { items: true, payment: true, address: { select: { city: true, region: true } } },
+    });
+    if (!order) throw new NotFoundException("We couldn't find an order with that number and email.");
+    return {
+      orderNumber: order.orderNumber,
+      status: order.status,
+      createdAt: order.createdAt,
+      shippingMethod: order.shippingMethod,
+      subtotal: order.subtotal,
+      shipping: order.shipping,
+      discount: order.discount,
+      total: order.total,
+      paymentMethod: order.payment?.method ?? null,
+      customerName: order.customerName,
+      city: order.address.city,
+      items: order.items.map((i) => ({
+        productName: i.productName,
+        productSlug: i.productSlug,
+        productImage: i.productImage,
+        color: i.color,
+        size: i.size,
+        price: i.price,
+        quantity: i.quantity,
+      })),
+    };
   }
 
   async findByUser(userId: string, page = 1, pageSize = 10) {
@@ -176,10 +241,7 @@ export class OrdersService {
     const skip = (page - 1) * pageSize;
     const [items, total] = await Promise.all([
       this.prisma.order.findMany({
-        include: {
-          ...orderInclude,
-          user: { select: { name: true, email: true } },
-        },
+        include: orderInclude,
         orderBy: { createdAt: "desc" },
         skip,
         take: pageSize,

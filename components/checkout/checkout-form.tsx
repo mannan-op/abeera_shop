@@ -12,12 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { quoteTotals } from "@abeera/shared";
+import { quoteTotals, type ShippingRates } from "@abeera/shared";
 
-import { placeOrder } from "@/lib/auth/customer-actions";
+import { placeOrder } from "@/lib/checkout/actions";
 import { shippingMethods } from "@/lib/catalog";
 import { useShop } from "@/lib/store/shop";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatPriceAmount } from "@/lib/utils";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -30,13 +30,21 @@ const schema = z.object({
   postalCode: z.string().min(1, "Enter a postal code"),
   country: z.string().min(1, "Enter a country"),
   shipping: z.enum(["standard", "express"]),
-  payment: z.enum(["COD", "JAZZCASH", "EASYPAISA"]),
+  payment: z.literal("COD", { message: "Choose a payment method" }),
   discount: z.string().optional(),
 });
 
 type Values = z.infer<typeof schema>;
 
-export function CheckoutForm() {
+export function CheckoutForm({
+  rates,
+  paymentMethods,
+}: {
+  rates: ShippingRates;
+  /** Methods switched on in Site settings. Card needs a gateway, so only COD can appear today. */
+  paymentMethods: ("COD" | "CARD")[];
+}) {
+  const codEnabled = paymentMethods.includes("COD");
   const { cart, cartSubtotal, clearCart } = useShop();
   const router = useRouter();
   const [errorSummary, setErrorSummary] = React.useState<string[]>([]);
@@ -67,6 +75,7 @@ export function CheckoutForm() {
     subtotal: cartSubtotal,
     shippingMethod: shippingId,
     promoCode: discountCode,
+    rates,
   });
   const idempotencyKey = React.useRef(crypto.randomUUID());
   const discount = quote.ok ? quote.discount : 0;
@@ -84,7 +93,6 @@ export function CheckoutForm() {
       city: values.city,
       region: values.region,
       postalCode: values.postalCode,
-      country: values.country,
       paymentMethod: values.payment,
       shippingMethod: values.shipping,
       promoCode: values.discount,
@@ -93,11 +101,6 @@ export function CheckoutForm() {
     });
 
     if (!result.ok) {
-      if (result.code === "UNAUTH") {
-        toast.error(result.error);
-        router.push(`/login?next=${encodeURIComponent("/checkout")}`);
-        return;
-      }
       setErrorSummary([result.error]);
       summaryRef.current?.focus();
       toast.error(result.error);
@@ -105,7 +108,7 @@ export function CheckoutForm() {
     }
 
     clearCart();
-    router.push(`/order-confirmation?id=${encodeURIComponent(result.order.id)}`);
+    router.push(`/order-confirmation?order=${encodeURIComponent(result.orderNumber)}`);
   }
 
   const onInvalid = () => {
@@ -154,18 +157,18 @@ export function CheckoutForm() {
         ) : null}
 
         <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link href="/login?next=/checkout" className="underline">
-            Sign in
+          No account needed. We&apos;ll email your order slip and you can{" "}
+          <Link href="/track-order" className="underline">
+            track your order
           </Link>{" "}
-          before placing your order.
+          with your order number and email.
         </p>
 
         <section>
           <h2 className="font-serif text-2xl">Contact</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email <span className="text-muted-foreground">(we send your order slip here)</span></Label>
               <Input id="email" className="mt-2" autoComplete="email" {...form.register("email")} />
               {form.formState.errors.email ? (
                 <p className="mt-1 text-sm text-destructive" role="alert">
@@ -211,7 +214,12 @@ export function CheckoutForm() {
               const methodQuote = quoteTotals({
                 subtotal: cartSubtotal,
                 shippingMethod: method.id,
+                rates,
               });
+              const detail =
+                method.id === "standard"
+                  ? `4–5 working days.${rates.freeThreshold > 0 ? ` Complimentary over Rs. ${formatPriceAmount(rates.freeThreshold)}.` : ""}`
+                  : method.detail;
               const price = methodQuote.ok ? methodQuote.shipping : method.price;
               return (
                 <label key={method.id} className="flex items-center justify-between border border-border px-4 py-3">
@@ -219,7 +227,7 @@ export function CheckoutForm() {
                     <RadioGroupItem value={method.id} />
                     <span>
                       <span className="block text-sm">{method.name}</span>
-                      <span className="text-xs text-muted-foreground">{method.detail}</span>
+                      <span className="text-xs text-muted-foreground">{detail}</span>
                     </span>
                   </span>
                   <span className="text-sm">{price === 0 ? "Complimentary" : formatPrice(price)}</span>
@@ -236,22 +244,18 @@ export function CheckoutForm() {
             value={form.watch("payment")}
             onValueChange={(value) => form.setValue("payment", value as Values["payment"])}
           >
-            <label className="flex items-center gap-3 border border-border px-4 py-3">
-              <RadioGroupItem value="COD" />
-              Cash on delivery
-            </label>
-            <label className="flex items-center gap-3 border border-border px-4 py-3">
-              <RadioGroupItem value="JAZZCASH" />
-              JazzCash
-            </label>
-            <label className="flex items-center gap-3 border border-border px-4 py-3">
-              <RadioGroupItem value="EASYPAISA" />
-              EasyPaisa
-            </label>
+            {codEnabled ? (
+              <label className="flex items-center gap-3 border border-border px-4 py-3">
+                <RadioGroupItem value="COD" />
+                Cash on delivery
+              </label>
+            ) : null}
           </RadioGroup>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Online wallets redirect after order creation when merchant keys are configured.
-          </p>
+          {!codEnabled ? (
+            <p className="mt-2 text-sm text-destructive" role="alert">
+              Online checkout is paused right now. Please <Link href="/contact" className="underline">contact us</Link> to order.
+            </p>
+          ) : null}
         </section>
       </div>
 
@@ -296,7 +300,7 @@ export function CheckoutForm() {
             <dd>{formatPrice(total)}</dd>
           </div>
         </dl>
-        <Button type="submit" className="mt-6 w-full" disabled={form.formState.isSubmitting || !quote.ok}>
+        <Button type="submit" className="mt-6 w-full" disabled={form.formState.isSubmitting || !quote.ok || !codEnabled}>
           {form.formState.isSubmitting ? "Placing order…" : "Place order"}
         </Button>
       </aside>

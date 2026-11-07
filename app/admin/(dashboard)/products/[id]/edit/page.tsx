@@ -1,84 +1,58 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
 
-import { ProductForm } from "@/components/admin/product-form";
+import { ProductEditor } from "@/components/admin/product-editor";
+import { toEditorVariant, type ApiVariantLike } from "@/lib/admin/product-model";
 import { getAccessToken } from "@/lib/admin/auth";
 import { apiClient } from "@/lib/api/client";
-import { getCategories } from "@/lib/catalog";
-import type { Product } from "@/lib/catalog/types";
 
-export default async function EditProductPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+type Detail = {
+  id: string;
+  slug: string;
+  name: string;
+  tagline: string;
+  description: string;
+  details: string;
+  materials: string;
+  care: string;
+  categoryId: string;
+  isNew: boolean;
+  isBestSeller: boolean;
+  variants: ApiVariantLike[];
+  images: { url: string; alt: string; sortOrder: number }[];
+};
+
+export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const token = await getAccessToken();
-  if (!token) notFound();
+  if (!token) redirect("/admin/login");
 
-  let detail: {
-    id: string;
-    slug: string;
-    name: string;
-    tagline: string;
-    description: string;
-    details: string;
-    materials: string;
-    care: string;
-    category: { slug: string };
-    isNew: boolean;
-    isBestSeller: boolean;
-    variants: { priceInPaisa: number }[];
-  };
+  let detail: Detail;
   try {
-    detail = await apiClient.get<typeof detail>(`/products/by-id/${id}`, {
-      token,
-      cache: "no-store",
-    });
+    detail = await apiClient.get<Detail>(`/products/by-id/${id}`, { token, cache: "no-store" });
   } catch {
     notFound();
   }
-
-  const categories = (await getCategories())
-    .filter((category) => category.slug !== "new-arrivals" && category.slug !== "sale")
-    .map((category) => ({ slug: category.slug, name: category.name }));
-  if (!categories.some((category) => category.slug === detail.category.slug)) {
-    categories.unshift({ slug: detail.category.slug, name: detail.category.slug });
-  }
-
-  const product: Product = {
-    id: detail.id,
-    slug: detail.slug,
-    name: detail.name,
-    tagline: detail.tagline,
-    description: detail.description,
-    details: detail.details,
-    materials: detail.materials,
-    care: detail.care,
-    category: detail.category.slug,
-    price: detail.variants[0]?.priceInPaisa ?? 0,
-    rating: 0,
-    reviewCount: 0,
-    isNew: detail.isNew,
-    isBestSeller: detail.isBestSeller,
-    colors: [{ name: "Default", hex: "#888", images: ["https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=900", "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=900"] }],
-    sizes: ["S", "M", "L", "XL"],
-  };
+  const categories = await apiClient.get<{ id: string; name: string }[]>("/categories", { cache: "no-store" });
 
   return (
-    <div>
-      <Link
-        href="/admin/products"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeftIcon className="size-4" />
-        Back to Products
-      </Link>
-      <h1 className="font-serif text-3xl">Edit: {product.name}</h1>
-      <div className="mt-8 max-w-2xl rounded-xl border border-border bg-[#faf7f2] p-6">
-        <ProductForm product={product} categories={categories} />
-      </div>
-    </div>
+    <ProductEditor
+      key={detail.id}
+      categories={categories}
+      initial={{
+        id: detail.id,
+        name: detail.name,
+        slug: detail.slug,
+        tagline: detail.tagline,
+        description: detail.description,
+        details: detail.details,
+        materials: detail.materials,
+        care: detail.care,
+        categoryId: detail.categoryId,
+        isNew: detail.isNew,
+        isBestSeller: detail.isBestSeller,
+        images: [...detail.images].sort((a, b) => a.sortOrder - b.sortOrder).map((i) => ({ url: i.url, alt: i.alt })),
+        variants: detail.variants.map(toEditorVariant),
+      }}
+    />
   );
 }

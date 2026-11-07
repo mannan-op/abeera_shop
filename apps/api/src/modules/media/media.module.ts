@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common";
 import { MediaService } from "./media.service";
-import { MediaController } from "./media.controller";
+import { MediaAdminController, MediaController } from "./media.controller";
 
 @Module({
-  controllers: [MediaController],
+  controllers: [MediaController, MediaAdminController],
   providers: [MediaService],
   exports: [MediaService],
 })

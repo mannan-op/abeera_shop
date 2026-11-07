@@ -42,6 +42,9 @@ export default async function OrderDetailPage({
       phone: string;
     };
     payment?: { method: string; status: string };
+    customerName: string;
+    customerEmail: string;
+    customerPhone: string;
   };
 
   try {
@@ -106,6 +109,19 @@ export default async function OrderDetailPage({
         </div>
 
         <div className="space-y-6">
+          <div className="rounded-xl border border-border bg-[#faf7f2] p-6">
+            <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Customer</h2>
+            <div className="mt-3 text-sm leading-relaxed">
+              <p className="font-medium">{order.customerName}</p>
+              <p>
+                <a className="underline underline-offset-4" href={`mailto:${order.customerEmail}`}>{order.customerEmail}</a>
+              </p>
+              <p>
+                <a className="underline underline-offset-4" href={`tel:${order.customerPhone}`}>{order.customerPhone}</a>
+              </p>
+            </div>
+          </div>
+
           <div className="rounded-xl border border-border bg-[#faf7f2] p-6">
             <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
               Shipping Address

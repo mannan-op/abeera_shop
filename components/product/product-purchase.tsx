@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { ProductGallery } from "@/components/product/product-gallery";
 import type { Product } from "@/lib/catalog/types";
 import { cartItemFromProduct, useShop } from "@/lib/store/shop";
+import { useWhatsAppDigits } from "@/lib/site/whatsapp-context";
 import { cn, formatPrice, formatPriceAmount } from "@/lib/utils";
 
 function WhatsAppMark(props: React.SVGProps<SVGSVGElement>) {
@@ -21,8 +22,7 @@ function WhatsAppMark(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function whatsAppHref(productName: string) {
-  const digits = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, "");
+function whatsAppHref(productName: string, digits: string) {
   const text = `Hello Abeera, I need help with ${productName}.`;
   if (!digits) return "/contact";
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
@@ -33,9 +33,10 @@ export function ProductPurchase({ product }: { product: Product }) {
   const [size, setSize] = React.useState(product.sizes[0] ?? "");
   const [qty, setQty] = React.useState(1);
   const { addToCart, toggleWishlist, isWishlisted, rememberView } = useShop();
+  const whatsappDigits = useWhatsAppDigits();
   const router = useRouter();
   const wished = isWishlisted(product.id);
-  const helpHref = whatsAppHref(product.name);
+  const helpHref = whatsAppHref(product.name, whatsappDigits);
   const externalHelp = helpHref.startsWith("http");
 
   React.useEffect(() => {
@@ -234,8 +235,8 @@ export function ProductPurchase({ product }: { product: Product }) {
           </li>
           <li className="inline-flex items-center gap-1.5">
             <RefreshCcwIcon className="size-4" aria-hidden />
-            <Link href="/returns" className="text-foreground underline-offset-4 hover:underline">
-              Easy exchange
+            <Link href="/refund-policy" className="text-foreground underline-offset-4 hover:underline">
+              7-day exchange
             </Link>
           </li>
           <li className="inline-flex items-center gap-1.5">

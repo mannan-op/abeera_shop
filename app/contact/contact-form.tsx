@@ -15,7 +15,7 @@ const schema = z.object({
   message: z.string().min(10, "Write a little more"),
 });
 
-export default function ContactForm() {
+export default function ContactForm({ email, phone, whatsapp, address }: { email: string; phone: string; whatsapp: string; address: string }) {
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: { name: "", email: "", message: "" },
@@ -27,10 +27,32 @@ export default function ContactForm() {
       <div>
         <h1 className="font-serif text-4xl">Contact</h1>
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-          Care, alterations, and press. We reply within a working day.
+          Orders, exchanges, alterations and press. We reply within 2 working days.
         </p>
-        <p className="mt-6 text-sm">care@abeera.example</p>
-        <p className="text-sm text-muted-foreground">Lahore, Pakistan</p>
+        <dl className="mt-6 space-y-2 text-sm">
+          {email ? (
+            <div>
+              <dt className="text-muted-foreground">Email</dt>
+              <dd><a className="underline underline-offset-4" href={`mailto:${email}`}>{email}</a></dd>
+            </div>
+          ) : null}
+          {phone ? (
+            <div>
+              <dt className="text-muted-foreground">Phone</dt>
+              <dd><a className="underline underline-offset-4" href={`tel:${phone.replace(/[^+\d]/g, "")}`}>{phone}</a></dd>
+            </div>
+          ) : null}
+          {whatsapp ? (
+            <div>
+              <dt className="text-muted-foreground">WhatsApp</dt>
+              <dd><a className="underline underline-offset-4" href={`https://wa.me/${whatsapp}`}>+{whatsapp}</a></dd>
+            </div>
+          ) : null}
+          <div>
+            <dt className="text-muted-foreground">Shop</dt>
+            <dd>{address || "Lahore, Pakistan"}</dd>
+          </div>
+        </dl>
       </div>
       <form
         className="space-y-4"

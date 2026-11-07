@@ -5,7 +5,7 @@ import type { HomepageMomentRail } from "@abeera/shared";
 
 export function MomentRail({ section }: { section: HomepageMomentRail }) {
   return (
-    <section id="rail" aria-labelledby="moment-title" className="py-[clamp(3.5rem,8vw,6.5rem)] pl-[clamp(1.25rem,4vw,4.5rem)]">
+    <section id="rail" aria-labelledby="moment-title" className="pt-[clamp(2.75rem,6vw,4.5rem)] pb-[clamp(1.25rem,3vw,2rem)] pl-[clamp(1.25rem,4vw,4.5rem)]">
       <div className="mx-auto mb-9 flex max-w-[1440px] flex-wrap items-end justify-between gap-4 pr-[clamp(1.25rem,4vw,4.5rem)]">
         <div>
           <p className="kicker">{section.kicker}</p>

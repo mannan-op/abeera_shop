@@ -100,11 +100,8 @@ export async function runCatalogSeed(prisma: PrismaClient): Promise<CatalogSeedR
   for (const cat of categoryDefs) {
     const row = await prisma.category.upsert({
       where: { slug: cat.slug },
-      update: {
-        name: cat.name,
-        description: cat.description,
-        sortOrder: cat.sortOrder,
-      },
+      // Categories are managed in the admin; a reseed only adds missing ones.
+      update: {},
       create: cat,
     });
     categoryIds.set(cat.slug, row.id);

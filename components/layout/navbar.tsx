@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import * as React from "react";
-import { MenuIcon, SearchIcon, ShoppingBagIcon, UserIcon } from "lucide-react";
+import { MenuIcon, PackageSearchIcon, SearchIcon, ShoppingBagIcon } from "lucide-react";
 
 import { useShop } from "@/lib/store/shop";
 import { cn } from "@/lib/utils";
@@ -51,12 +51,6 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
           >
             <MenuIcon className="size-[1.1rem]" strokeWidth={1.35} />
           </button>
-          <Link
-            href="/#collections"
-            className="hidden text-[0.7rem] font-medium tracking-[0.12em] uppercase opacity-85 hover:opacity-100 md:inline"
-          >
-            Collections
-          </Link>
         </div>
 
         <Link href="/" className="font-serif text-[1.65rem] leading-none font-normal tracking-[0.06em] md:text-[1.85rem]">
@@ -83,14 +77,15 @@ export function Navbar({ overlay = false }: { overlay?: boolean }) {
             <SearchIcon className="size-[1.1rem]" strokeWidth={1.35} />
           </button>
           <Link
-            href="/account"
-            aria-label="Account"
+            href="/track-order"
+            aria-label="Track your order"
+            title="Track your order"
             className={cn(
               "hidden size-10 items-center justify-center rounded-full md:flex",
               onPhoto ? "hover:bg-paper/10" : "hover:bg-ink/5",
             )}
           >
-            <UserIcon className="size-[1.1rem]" strokeWidth={1.35} />
+            <PackageSearchIcon className="size-[1.1rem]" strokeWidth={1.35} />
           </Link>
           <button
             type="button"

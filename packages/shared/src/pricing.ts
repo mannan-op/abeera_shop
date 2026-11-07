@@ -17,11 +17,22 @@ export type OrderQuote =
     }
   | { ok: false; error: string };
 
+export type ShippingRates = { standard: number; express: number; freeThreshold: number };
+
+export const DEFAULT_SHIPPING_RATES: ShippingRates = {
+  standard: SHIPPING_METHODS.standard,
+  express: SHIPPING_METHODS.express,
+  freeThreshold: FREE_SHIPPING_THRESHOLD,
+};
+
 export function quoteTotals(input: {
   subtotal: number;
   shippingMethod: string;
   promoCode?: string | null;
+  /** Store settings; defaults to the built-in rates. A free threshold of 0 turns free delivery off. */
+  rates?: ShippingRates;
 }): OrderQuote {
+  const rates = input.rates ?? DEFAULT_SHIPPING_RATES;
   if (!isShippingMethod(input.shippingMethod)) {
     return { ok: false, error: "Unknown shipping method" };
   }
@@ -30,9 +41,9 @@ export function quoteTotals(input: {
   if (!promo.ok) return promo;
 
   const shipping =
-    input.shippingMethod === "standard" && input.subtotal >= FREE_SHIPPING_THRESHOLD
+    input.shippingMethod === "standard" && rates.freeThreshold > 0 && input.subtotal >= rates.freeThreshold
       ? 0
-      : SHIPPING_METHODS[input.shippingMethod];
+      : rates[input.shippingMethod];
   const discount = promo.percent
     ? Math.min(input.subtotal, Math.round((input.subtotal * promo.percent) / 100))
     : 0;

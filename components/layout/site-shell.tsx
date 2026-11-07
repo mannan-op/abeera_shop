@@ -9,7 +9,10 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { Navbar } from "@/components/layout/navbar";
 import { WhatsAppFab } from "@/components/layout/whatsapp-fab";
 import { SearchDialog } from "@/components/search/search-dialog";
+import type { SiteSettings } from "@abeera/shared";
+
 import type { Category } from "@/lib/catalog/types";
+import { WhatsAppProvider } from "@/lib/site/whatsapp-context";
 
 function SampleCatalogNotice() {
   return (
@@ -28,10 +31,14 @@ export function SiteShell({
   children,
   categories,
   sampleCatalog = false,
+  settings,
+  whatsapp,
 }: {
   children: React.ReactNode;
   categories?: Category[] | null;
   sampleCatalog?: boolean;
+  settings: SiteSettings;
+  whatsapp: string;
 }) {
   const pathname = usePathname();
   const home = pathname === "/";
@@ -43,16 +50,18 @@ export function SiteShell({
   }
 
   return (
+    <WhatsAppProvider value={whatsapp}>
     <div className="flex min-h-screen flex-col">
       {sampleCatalog ? <SampleCatalogNotice /> : null}
-      <AnnouncementBar />
+      {settings.announcement.enabled ? <AnnouncementBar messages={settings.announcement.messages} /> : null}
       <Navbar overlay={home} />
       <main className="flex-1">{children}</main>
-      <Footer />
-      <WhatsAppFab />
+      <Footer footer={settings.footer} store={settings.store} />
+      <WhatsAppFab digits={whatsapp} />
       <CartDrawer />
       <SearchDialog />
-      <MobileNav categories={categories ?? undefined} />
+      <MobileNav categories={categories ?? undefined} navigation={settings.navigation} />
     </div>
+    </WhatsAppProvider>
   );
 }

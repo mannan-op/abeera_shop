@@ -23,7 +23,7 @@ export function ProductRail({
 
   return (
     <Reveal>
-      <section className="mx-auto max-w-[1440px] px-[clamp(1.25rem,4vw,4.5rem)] py-[clamp(3.5rem,8vw,6.5rem)]">
+      <section className="mx-auto max-w-[1440px] px-[clamp(1.25rem,4vw,4.5rem)] pt-[clamp(1.25rem,3vw,2rem)] pb-[clamp(2.75rem,6vw,4.5rem)]">
         <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
           <div>
             {eyebrow ? <p className="kicker">{eyebrow}</p> : null}

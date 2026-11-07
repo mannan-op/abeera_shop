@@ -50,6 +50,8 @@ export type Category = {
   description: string;
   image: string;
   editorial?: string;
+  /** Database categories can be hidden from the /shop circles. */
+  showInShop?: boolean;
 };
 
 export type Collection = {

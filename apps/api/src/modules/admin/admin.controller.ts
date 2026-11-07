@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from "@nestjs/common";
 import { Roles } from "../../common/decorators";
 import { ProductsService } from "../products/products.service";
 import { CategoriesService } from "../categories/categories.service";
@@ -24,7 +24,7 @@ export class AdminController {
     ]);
 
     const recentOrders = await this.prisma.order.findMany({
-      include: { items: true, payment: true, address: true, user: { select: { name: true, email: true } } },
+      include: { items: true, payment: true, address: true },
       orderBy: { createdAt: "desc" },
       take: 10,
     });
@@ -39,12 +39,12 @@ export class AdminController {
 
   // Products CRUD
   @Post("products")
-  createProduct(@Body() body: any) {
+  createProduct(@Body() body: Parameters<ProductsService["create"]>[0]) {
     return this.products.create(body);
   }
 
   @Patch("products/:id")
-  updateProduct(@Param("id") id: string, @Body() body: any) {
+  updateProduct(@Param("id") id: string, @Body() body: Parameters<ProductsService["update"]>[1]) {
     return this.products.update(id, body);
   }
 
@@ -54,13 +54,23 @@ export class AdminController {
   }
 
   // Categories CRUD
+  @Get("categories")
+  listCategories() {
+    return this.categories.findAllWithCounts();
+  }
+
   @Post("categories")
-  createCategory(@Body() body: { name: string; slug: string; description?: string; image?: string; sortOrder?: number }) {
+  createCategory(@Body() body: { name: string; slug: string; description?: string; image?: string; sortOrder?: number; showInShop?: boolean }) {
     return this.categories.create(body);
   }
 
+  @Put("categories/order")
+  reorderCategories(@Body() body: { ids: string[] }) {
+    return this.categories.reorder(body?.ids);
+  }
+
   @Patch("categories/:id")
-  updateCategory(@Param("id") id: string, @Body() body: any) {
+  updateCategory(@Param("id") id: string, @Body() body: Record<string, unknown>) {
     return this.categories.update(id, body);
   }
 

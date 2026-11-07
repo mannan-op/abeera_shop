@@ -15,6 +15,10 @@ import { PaymentsModule } from "./modules/payments/payments.module";
 import { MediaModule } from "./modules/media/media.module";
 import { HomepageModule } from "./modules/homepage/homepage.module";
 import { AdminModule } from "./modules/admin/admin.module";
+import { SiteModule } from "./modules/site/site.module";
+import { CustomersModule } from "./modules/customers/customers.module";
+import { MailModule } from "./modules/mail/mail.module";
+import { ReviewsModule } from "./modules/reviews/reviews.module";
 import { HealthController, RootHealthController } from "./health.controller";
 
 @Module({
@@ -32,6 +36,10 @@ import { HealthController, RootHealthController } from "./health.controller";
     PaymentsModule,
     MediaModule,
     HomepageModule,
+    SiteModule,
+    CustomersModule,
+    ReviewsModule,
+    MailModule,
     AdminModule,
   ],
   controllers: [HealthController, RootHealthController],

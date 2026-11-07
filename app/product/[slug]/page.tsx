@@ -4,7 +4,7 @@ import { ProductPurchase } from "@/components/product/product-purchase";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
 import { ProductRail } from "@/components/sections/product-rail";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { getCategory, getProduct, getRelated, reviews } from "@/lib/catalog";
+import { getCategory, getProduct, getProductReviews, getRelated } from "@/lib/catalog";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -35,9 +35,11 @@ export default async function ProductPage({
     if (process.env.NEXT_PHASE === "phase-production-build") return <main />;
     notFound();
   }
-  const related = await getRelated(product);
-  const category = await getCategory(product.category);
-  const productReviews = reviews.filter((review) => review.productId === product.id);
+  const [related, category, productReviews] = await Promise.all([
+    getRelated(product),
+    getCategory(product.category),
+    getProductReviews(product),
+  ]);
 
   return (
     <div className="mx-auto max-w-[1440px] px-5 py-10 md:px-10 md:py-16">
@@ -60,7 +62,7 @@ export default async function ProductPage({
               <li key={review.id}>
                 <p className="text-sm font-medium">{review.title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {review.author} · {review.location} · {review.rating}/5
+                  {[review.author, review.location, `${review.rating}/5`].filter(Boolean).join(" · ")}
                 </p>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
                   {review.body}

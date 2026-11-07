@@ -1,10 +1,12 @@
 import { collections, products as memoryProducts } from "@/lib/catalog/products";
+import { reviews as sampleReviews } from "@/lib/catalog/content";
 import { isCatalogApiRequired } from "@/lib/catalog/source";
 import type {
   Category,
   CategorySlug,
   Product,
   ProductFilters,
+  Review,
   SortKey,
 } from "@/lib/catalog/types";
 import { apiClient, ApiError } from "@/lib/api/client";
@@ -406,3 +408,25 @@ export const popularSearches = [
   "lawn",
   "dupatta",
 ];
+
+/** Published reviews for a product: from the API, or the sample reviews in a Next-only preview. */
+export async function getProductReviews(product: Product): Promise<Review[]> {
+  if (!isCatalogApiRequired()) return sampleReviews.filter((review) => review.productId === product.id);
+  try {
+    const rows = await readCatalog<
+      { id: string; rating: number; title: string; body: string; createdAt: string; user: { name: string } }[]
+    >(`/products/${product.slug}/reviews`, []);
+    return rows.map((row) => ({
+      id: row.id,
+      productId: product.id,
+      author: row.user.name,
+      location: "",
+      rating: row.rating,
+      title: row.title,
+      body: row.body,
+      date: row.createdAt,
+    }));
+  } catch {
+    return [];
+  }
+}

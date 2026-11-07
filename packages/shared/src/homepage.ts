@@ -182,7 +182,7 @@ export const defaultHomepageContent: HomepageContent = homepageContentSchema.par
       href: "/search?q=festive",
       title: "Festive Edit",
       label: "Shop the line",
-      imageUrl: unsplash("photo-1609607285694-e283bd2ea9a0", 1200),
+      imageUrl: unsplash("photo-1583391733956-3750e0ff4e8b", 1200),
       imageAlt: "Festive embroidered formal",
     },
     {
@@ -257,7 +257,7 @@ export const defaultHomepageContent: HomepageContent = homepageContentSchema.par
   },
   trust: [
     { title: "Free delivery", copy: "On orders over Rs. 5,000." },
-    { title: "Easy exchange", copy: "Unworn pieces, tags on." },
+    { title: "7-day exchange", copy: "Unworn pieces, tags on." },
     { title: "Cash on delivery", copy: "Pay when it arrives." },
     { title: "JazzCash · EasyPaisa", copy: "At checkout with COD." },
   ],
@@ -294,7 +294,7 @@ export const defaultHomepageContent: HomepageContent = homepageContentSchema.par
         href: "/shop",
         title: "The Eid drop",
         copy: "A celebration edit of stitched suits, cut in Lahore.",
-        imageUrl: unsplash("photo-1609607285694-e283bd2ea9a0", 1200),
+        imageUrl: unsplash("photo-1617627143750-d86bc21e42bb", 1200),
         imageAlt: "Embroidered festive formal",
       },
     ],

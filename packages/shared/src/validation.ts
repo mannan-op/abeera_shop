@@ -60,6 +60,39 @@ export const createOrderSchema = z.object({
   idempotencyKey: z.string().trim().min(8).max(80),
 });
 
+/** Guest checkout: no account. The order carries the customer's own contact details. */
+export const guestOrderSchema = z.object({
+  customer: z.object({
+    name: z.string().trim().min(2, "Enter your name").max(120),
+    email: z.string().trim().toLowerCase().email("Enter a valid email").max(160),
+    phone: z
+      .string()
+      .trim()
+      .regex(/^\+?[0-9][0-9 -]{9,18}$/, "Enter a valid phone number, e.g. 03001234567"),
+  }),
+  address: z.object({
+    line1: z.string().trim().min(3, "Enter an address").max(200),
+    line2: z.string().trim().max(200).optional(),
+    city: z.string().trim().min(2, "Enter a city").max(80),
+    region: z.string().trim().min(2, "Enter a province").max(80),
+    postalCode: z.string().trim().max(20).default(""),
+    country: z.literal("Pakistan").default("Pakistan"),
+  }),
+  items: z
+    .array(z.object({ variantId: z.string().uuid(), quantity: z.number().int().min(1).max(20) }))
+    .min(1, "Your bag is empty")
+    .max(30),
+  paymentMethod: z.enum(["JAZZCASH", "EASYPAISA", "COD"]),
+  shippingMethod: z.enum(["standard", "express"]),
+  promoCode: z.string().trim().max(40).optional(),
+  idempotencyKey: z.string().trim().min(8).max(80),
+});
+
+export const orderLookupSchema = z.object({
+  orderNumber: z.string().trim().toUpperCase().min(4).max(40),
+  email: z.string().trim().toLowerCase().email("Enter a valid email").max(160),
+});
+
 export const addressSchema = z.object({
   label: z.string().min(1),
   name: z.string().min(1),
@@ -90,5 +123,7 @@ export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 export type AddToCartInput = z.infer<typeof addToCartSchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+export type GuestOrderInput = z.infer<typeof guestOrderSchema>;
+export type OrderLookupInput = z.infer<typeof orderLookupSchema>;
 export type AddressInput = z.infer<typeof addressSchema>;
 export type ProductFilterInput = z.infer<typeof productFilterSchema>;

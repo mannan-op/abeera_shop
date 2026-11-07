@@ -7,6 +7,7 @@ type ApiCategory = {
   description: string;
   image: string | null;
   sortOrder: number;
+  showInShop?: boolean;
 };
 
 type ApiVariant = {
@@ -167,5 +168,6 @@ export function mapApiCategory(category: ApiCategory): Category {
     name: category.name,
     description: category.description,
     image: category.image ?? "",
+    showInShop: category.showInShop ?? true,
   };
 }

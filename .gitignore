@@ -1,35 +1,19 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
-# testing
-/coverage
-# next.js
-/.next/
-/out/
-# production
-/build
-# misc
-.DS_Store
-*.pem
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-# env files
-.env*
+# Local email outbox (no RESEND_API_KEY)
+apps/api/tmp-mail/
+
+# local secrets
+.env
+.env.*
 !.env.example
-# vercel
-.vercel
-# typescript
+**/.env
+**/.env.*
+!**/.env.example
+*.bak
+
+# build output
+.next/
+node_modules/
+**/dist/
 *.tsbuildinfo
-next-env.d.ts
-apps/api/dist
-packages/shared/dist
+**/tmp-mail/

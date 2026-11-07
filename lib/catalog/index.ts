@@ -19,6 +19,7 @@ export {
   getAllProductSlugs,
   getAllCategorySlugs,
   popularSearches,
+  getProductReviews,
 } from "@/lib/catalog/queries";
 export {
   testimonials,

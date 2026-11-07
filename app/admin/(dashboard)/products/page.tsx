@@ -18,27 +18,50 @@ type ApiListItem = {
   soldOut: boolean;
 };
 
-export default async function AdminProductsPage() {
+const PAGE_SIZE = 20;
+
+type ApiListResult = {
+  items: ApiListItem[];
+  total: number;
+  page: number;
+  totalPages: number;
+};
+
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const requestedPage = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
   const token = await getAccessToken();
   let items: ApiListItem[] = [];
+  let total = 0;
+  let page = requestedPage;
+  let totalPages = 1;
   if (token) {
     try {
-      const result = await apiClient.get<{ items: ApiListItem[] }>(
-        "/products?pageSize=100",
+      const result = await apiClient.get<ApiListResult>(
+        `/products?pageSize=${PAGE_SIZE}&page=${requestedPage}`,
         { token, cache: "no-store" },
       );
       items = result.items;
+      total = result.total;
+      page = result.page;
+      totalPages = Math.max(1, result.totalPages);
     } catch {
       items = [];
     }
   }
+  const firstShown = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const lastShown = Math.min(page * PAGE_SIZE, total);
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-serif text-3xl">Products</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{items.length} products</p>
+          <p className="mt-1 text-sm text-muted-foreground">{total} products</p>
         </div>
         <Button asChild>
           <Link href="/admin/products/new">
@@ -102,6 +125,41 @@ export default async function AdminProductsPage() {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 ? (
+        <nav aria-label="Products pages" className="mt-6 flex items-center justify-between text-sm">
+          <p className="text-muted-foreground">
+            Showing {firstShown}–{lastShown} of {total}
+          </p>
+          <div className="flex items-center gap-2">
+            {page > 1 ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/admin/products?page=${page - 1}`}>Previous</Link>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" disabled>
+                Previous
+              </Button>
+            )}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+              <Button key={n} variant={n === page ? "default" : "outline"} size="sm" asChild>
+                <Link href={`/admin/products?page=${n}`} aria-current={n === page ? "page" : undefined}>
+                  {n}
+                </Link>
+              </Button>
+            ))}
+            {page < totalPages ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/admin/products?page=${page + 1}`}>Next</Link>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" disabled>
+                Next
+              </Button>
+            )}
+          </div>
+        </nav>
+      ) : null}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
 import { PrismaService } from "../../prisma/prisma.service";
@@ -18,11 +18,121 @@ type ProductFilter = {
   isBestSeller?: boolean;
 };
 
+/** Variants an order still references are kept, renamed with this mark, and hidden. */
+const RETIRED_MARK = "(retired ";
+
 const productInclude = {
   category: true,
-  variants: true,
-  images: { orderBy: { sortOrder: "asc" as const } },
-} as const;
+  variants: {
+    where: { NOT: { size: { contains: RETIRED_MARK } } },
+    orderBy: [{ color: "asc" }, { priceInPaisa: "asc" }],
+  },
+  images: { orderBy: { sortOrder: "asc" } },
+} satisfies Prisma.ProductInclude;
+
+type VariantInput = {
+  id?: string;
+  color: string;
+  colorHex: string;
+  size: string;
+  priceInPaisa: number;
+  compareAtPrice: number | null;
+  stock: number;
+  soldOut: boolean;
+};
+
+type ImageInput = { url: string; alt: string; sortOrder: number };
+
+export type ProductInput = {
+  name: string; slug: string; tagline?: string; description?: string;
+  details?: string; materials?: string; care?: string; categoryId: string;
+  isNew?: boolean; isBestSeller?: boolean;
+  variants?: Partial<VariantInput>[];
+  images?: Partial<ImageInput>[];
+};
+
+const TEXT_FIELDS = ["name", "slug", "tagline", "description", "details", "materials", "care", "categoryId"] as const;
+
+function withoutId<T extends { id?: string }>(row: T): Omit<T, "id"> {
+  const copy = { ...row };
+  delete copy.id;
+  return copy;
+}
+
+function friendly(error: unknown): never {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === "P2002") bad("That slug is already used by another product (including deleted ones).");
+    if (error.code === "P2003") bad("That category doesn't exist.");
+  }
+  throw error;
+}
+
+function bad(message: string): never {
+  throw new BadRequestException(message);
+}
+
+/** Validates and cleans a product payload from the admin. */
+function normalizeProductInput(data: Partial<ProductInput>, creating: boolean) {
+  if (!data || typeof data !== "object") bad("Product data is missing.");
+  const out: Record<string, unknown> = {};
+  for (const key of TEXT_FIELDS) {
+    if (data[key] === undefined) continue;
+    if (typeof data[key] !== "string") bad(`${key} must be text.`);
+    out[key] = (data[key] as string).trim();
+  }
+  for (const key of ["isNew", "isBestSeller"] as const) {
+    if (data[key] !== undefined) out[key] = Boolean(data[key]);
+  }
+  if (creating && (!out.name || !out.slug || !out.categoryId)) bad("Name, slug and category are required.");
+  if (out.name === "") bad("Name is required.");
+  if (out.slug !== undefined && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(out.slug as string)) {
+    bad("Slug may only use lowercase letters, numbers and dashes.");
+  }
+
+  let variants: VariantInput[] | undefined;
+  if (data.variants !== undefined || creating) {
+    if (!Array.isArray(data.variants) || data.variants.length === 0) bad("Add at least one size.");
+    const seen = new Set<string>();
+    variants = data.variants.map((v, i) => {
+      const row = `Row ${i + 1}`;
+      const color = String(v?.color ?? "").trim();
+      const size = String(v?.size ?? "").trim();
+      if (!color) bad(`${row}: colour is required.`);
+      if (!size) bad(`${row}: size is required.`);
+      const key = `${color.toLowerCase()}|${size.toLowerCase()}`;
+      if (seen.has(key)) bad(`${color} / ${size} appears twice.`);
+      seen.add(key);
+      const price = Number(v?.priceInPaisa);
+      if (!Number.isInteger(price) || price <= 0) bad(`${row}: price must be more than 0.`);
+      const compare = v?.compareAtPrice == null ? null : Number(v.compareAtPrice);
+      if (compare !== null && (!Number.isInteger(compare) || compare <= price)) {
+        bad(`${row}: the original price must be higher than the selling price.`);
+      }
+      const stock = Number(v?.stock ?? 0);
+      if (!Number.isInteger(stock) || stock < 0) bad(`${row}: stock can't be negative.`);
+      const hex = String(v?.colorHex ?? "#888888").trim();
+      if (!/^#[0-9a-fA-F]{6}$/.test(hex)) bad(`${row}: colour swatch must look like #a1b2c3.`);
+      return {
+        id: typeof v?.id === "string" && v.id ? v.id : undefined,
+        color, size, colorHex: hex, priceInPaisa: price, compareAtPrice: compare, stock,
+        soldOut: Boolean(v?.soldOut),
+      };
+    });
+  }
+
+  let images: ImageInput[] | undefined;
+  if (data.images !== undefined) {
+    if (!Array.isArray(data.images)) bad("Photos must be a list.");
+    if (data.images.length > 12) bad("Use 12 photos or fewer.");
+    images = data.images.map((img, i) => {
+      const url = String(img?.url ?? "").trim();
+      if (!/^https?:\/\/\S+$/i.test(url) && !/^\/[^/]/.test(url)) bad(`Photo ${i + 1}: use a link starting with https:// or /.`);
+      return { url, alt: String(img?.alt ?? "").trim().slice(0, 180), sortOrder: i };
+    });
+  }
+
+  return { ...out, variants, images };
+}
 
 @Injectable()
 export class ProductsService {
@@ -90,6 +200,41 @@ export class ProductsService {
         break;
     }
 
+    // Price sorts: Prisma cannot order by a relation's minimum, so order by each
+    // product's lowest variant price in memory, then load just the requested page.
+    if (filters.sort === "price-asc" || filters.sort === "price-desc") {
+      const direction = filters.sort === "price-asc" ? 1 : -1;
+      const candidates = await this.prisma.product.findMany({
+        where,
+        select: { id: true, variants: { select: { priceInPaisa: true } } },
+      });
+      const ordered = candidates
+        .map((product) => ({
+          id: product.id,
+          price: product.variants.length
+            ? Math.min(...product.variants.map((variant) => variant.priceInPaisa))
+            : Number.MAX_SAFE_INTEGER,
+        }))
+        .sort((a, b) => (a.price - b.price) * direction);
+      const pageIds = ordered.slice(skip, skip + pageSize).map((product) => product.id);
+      const rows = await this.prisma.product.findMany({
+        where: { id: { in: pageIds } },
+        include: productInclude,
+      });
+      const byId = new Map(rows.map((row) => [row.id, row]));
+      const pageRows = pageIds.flatMap((id) => {
+        const row = byId.get(id);
+        return row ? [row] : [];
+      });
+      return {
+        items: pageRows.map(this.toListItem),
+        total: candidates.length,
+        page,
+        pageSize,
+        totalPages: Math.ceil(candidates.length / pageSize),
+      };
+    }
+
     const [items, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
@@ -129,6 +274,7 @@ export class ProductsService {
       include: {
         ...productInclude,
         reviews: {
+          where: { status: "PUBLISHED" },
           include: { user: { select: { name: true } } },
           orderBy: { createdAt: "desc" },
           take: 10,
@@ -142,34 +288,96 @@ export class ProductsService {
     return product;
   }
 
-  async create(data: {
-    name: string; slug: string; tagline?: string; description?: string;
-    details?: string; materials?: string; care?: string; categoryId: string;
-    isNew?: boolean; isBestSeller?: boolean;
-    variants: { color: string; colorHex: string; size: string; priceInPaisa: number; compareAtPrice?: number; stock?: number }[];
-  }) {
-    const { variants, ...productData } = data;
+  async create(data: ProductInput) {
+    const input = normalizeProductInput(data, true);
+    const { variants, images, ...productData } = input;
     const product = await this.prisma.product.create({
       data: {
-        ...productData,
-        variants: { create: variants },
+        ...(productData as Prisma.ProductUncheckedCreateInput),
+        variants: { create: variants!.map((v) => withoutId(v)) },
+        images: { create: images ?? [] },
       },
       include: productInclude,
-    });
+    }).catch(friendly);
     return product;
   }
 
-  async update(id: string, data: Partial<{
-    name: string; slug: string; tagline: string; description: string;
-    details: string; materials: string; care: string; categoryId: string;
-    isNew: boolean; isBestSeller: boolean;
-  }>) {
-    const product = await this.prisma.product.update({
-      where: { id },
-      data,
-      include: productInclude,
+  /**
+   * Updates product fields. When `variants` is sent, the list replaces the
+   * product's variants: matched by id (or colour + size), new rows created,
+   * missing rows deleted — or, if an order already references them, kept but
+   * marked sold out with no stock so order history stays intact.
+   * When `images` is sent, it replaces the product's photos in that order.
+   */
+  async update(id: string, data: Partial<ProductInput>) {
+    const existing = await this.prisma.product.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        variants: {
+          where: { NOT: { size: { contains: RETIRED_MARK } } },
+          include: { _count: { select: { orderItems: true } } },
+        },
+      },
     });
-    await this.redis.del(`product:${product.slug}`);
+    if (!existing) throw new NotFoundException("Product not found");
+
+    const input = normalizeProductInput(data, false);
+    const { variants, images, ...productData } = input;
+
+    const product = await this.prisma.$transaction(async (tx) => {
+      if (variants) {
+        const keyOf = (v: { color: string; size: string }) => `${v.color.toLowerCase()}|${v.size.toLowerCase()}`;
+        const byId = new Map(existing.variants.map((v) => [v.id, v]));
+        const byKey = new Map(existing.variants.map((v) => [keyOf(v), v]));
+        const matched = new Set<string>();
+        const plan = variants.map((v) => {
+          const hit = (v.id && byId.get(v.id)) || byKey.get(keyOf(v));
+          if (hit && !matched.has(hit.id)) {
+            matched.add(hit.id);
+            return { ...v, id: hit.id };
+          }
+          return { ...v, id: undefined };
+        });
+        const removed = existing.variants.filter((v) => !matched.has(v.id));
+        for (const v of removed) {
+          await tx.cartItem.deleteMany({ where: { variantId: v.id } });
+          if (v._count.orderItems > 0) {
+            // Park under a unique retired name so the colour/size can be reused.
+            await tx.productVariant.update({
+              where: { id: v.id },
+              data: { soldOut: true, stock: 0, size: `${v.size} ${RETIRED_MARK}${v.id.slice(0, 6)})` },
+            });
+          } else {
+            await tx.productVariant.delete({ where: { id: v.id } });
+          }
+        }
+        // Two passes avoid unique (colour, size) clashes when rows swap.
+        const kept = plan.filter((v) => v.id);
+        for (const v of kept) {
+          await tx.productVariant.update({ where: { id: v.id }, data: { size: `__tmp_${v.id}` } });
+        }
+        for (const { id: variantId, ...v } of kept) {
+          await tx.productVariant.update({ where: { id: variantId }, data: v });
+        }
+        for (const v of plan.filter((p) => !p.id)) {
+          await tx.productVariant.create({ data: { ...withoutId(v), productId: id } });
+        }
+      }
+      if (images) {
+        await tx.productImage.deleteMany({ where: { productId: id } });
+        if (images.length) {
+          await tx.productImage.createMany({ data: images.map((img) => ({ ...img, productId: id })) });
+        }
+      }
+      return tx.product.update({
+        where: { id },
+        data: productData as Prisma.ProductUncheckedUpdateInput,
+        include: productInclude,
+      });
+    }).catch(friendly);
+
+    await this.redis.del(`product:${existing.slug}`);
+    if (product.slug !== existing.slug) await this.redis.del(`product:${product.slug}`);
     return product;
   }
 
@@ -186,7 +394,7 @@ export class ProductsService {
     if (categorySlug) where.category = { slug: categorySlug };
 
     const variants = await this.prisma.productVariant.findMany({
-      where: { product: where },
+      where: { product: where, NOT: { size: { contains: RETIRED_MARK } } },
       select: { size: true, priceInPaisa: true },
     });
 
@@ -198,10 +406,10 @@ export class ProductsService {
     return { sizes, min, max };
   }
 
-  private toListItem(product: any) {
-    const prices = product.variants.map((v: any) => v.priceInPaisa);
-    const comparePrices = product.variants.map((v: any) => v.compareAtPrice).filter(Boolean);
-    const allSoldOut = product.variants.every((v: any) => v.soldOut);
+  private toListItem(product: Prisma.ProductGetPayload<{ include: typeof productInclude }>) {
+    const prices = product.variants.map((v) => v.priceInPaisa);
+    const comparePrices = product.variants.map((v) => v.compareAtPrice).filter((v): v is number => v != null);
+    const allSoldOut = product.variants.every((v) => v.soldOut);
 
     return {
       id: product.id,

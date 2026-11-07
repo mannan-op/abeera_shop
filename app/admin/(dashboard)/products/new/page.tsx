@@ -1,26 +1,35 @@
-import Link from "next/link";
-import { ArrowLeftIcon } from "lucide-react";
+import { redirect } from "next/navigation";
 
-import { ProductForm } from "@/components/admin/product-form";
-import { getCategories } from "@/lib/catalog";
+import { ProductEditor } from "@/components/admin/product-editor";
+import { getAccessToken } from "@/lib/admin/auth";
+import { apiClient } from "@/lib/api/client";
 
 export default async function NewProductPage() {
-  const categories = (await getCategories())
-    .filter((category) => category.slug !== "new-arrivals" && category.slug !== "sale")
-    .map((category) => ({ slug: category.slug, name: category.name }));
+  const token = await getAccessToken();
+  if (!token) redirect("/admin/login");
+  const categories = await apiClient.get<{ id: string; name: string }[]>("/categories", { cache: "no-store" });
+
   return (
-    <div>
-      <Link
-        href="/admin/products"
-        className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeftIcon className="size-4" />
-        Back to Products
-      </Link>
-      <h1 className="font-serif text-3xl">New Product</h1>
-      <div className="mt-8 max-w-2xl rounded-xl border border-border bg-[#faf7f2] p-6">
-        <ProductForm categories={categories} />
-      </div>
-    </div>
+    <ProductEditor
+      categories={categories}
+      initial={{
+        name: "",
+        slug: "",
+        tagline: "",
+        description: "",
+        details: "",
+        materials: "",
+        care: "",
+        categoryId: categories[0]?.id ?? "",
+        isNew: true,
+        isBestSeller: false,
+        images: [],
+        variants: [
+          { color: "Ivory", colorHex: "#efe6d6", size: "S", price: "", sale: "", stock: "0", soldOut: false },
+          { color: "Ivory", colorHex: "#efe6d6", size: "M", price: "", sale: "", stock: "0", soldOut: false },
+          { color: "Ivory", colorHex: "#efe6d6", size: "L", price: "", sale: "", stock: "0", soldOut: false },
+        ],
+      }}
+    />
   );
 }

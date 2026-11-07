@@ -121,12 +121,12 @@ export const faqs = [
   {
     question: "How long does delivery take?",
     answer:
-      "Orders within Pakistan are delivered in 3–5 business days. International orders take 7–12 business days. You will receive a tracking number via SMS and email once your order ships.",
+      "Orders within Pakistan are delivered in 4–5 working days. We do not ship internationally. You will receive a tracking number via SMS and email once your order ships.",
   },
   {
-    question: "What is your return & exchange policy?",
+    question: "What is your exchange policy?",
     answer:
-      "Unworn items with tags may be returned or exchanged within 14 days. Sale items and stitched-to-order pieces are final sale. Contact us via WhatsApp or email to initiate a return.",
+      "We offer exchanges, not refunds. Unworn pieces with tags can be exchanged for another size, colour or design within 7 days of delivery, subject to stock. Sale items and stitched-to-order pieces are final sale. Refunds are made only in exceptional cases — see our Exchange, Cancellation & Refund Policy. Contact us via WhatsApp or email to start an exchange.",
   },
   {
     question: "Do you offer stitching?",
@@ -149,13 +149,13 @@ export const shippingMethods = [
   {
     id: "standard",
     name: "Standard",
-    detail: "3–5 business days. Complimentary over Rs. 5,000.",
+    detail: "4–5 working days. Complimentary over Rs. 5,000.",
     price: 30000,
   },
   {
     id: "express",
     name: "Express",
-    detail: "1–2 business days",
+    detail: "1–2 working days",
     price: 50000,
   },
 ] as const;
