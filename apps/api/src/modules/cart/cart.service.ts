@@ -1,9 +1,15 @@
 import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
+import { effectiveUnitPrice } from "@abeera/shared";
+
 import { PrismaService } from "../../prisma/prisma.service";
+import { SalesService } from "../sales/sales.service";
 
 @Injectable()
 export class CartService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private sales: SalesService,
+  ) {}
 
   async getCart(userId: string) {
     const items = await this.prisma.cartItem.findMany({
@@ -18,6 +24,8 @@ export class CartService {
         },
       },
     });
+    const now = new Date();
+    const campaigns = await this.sales.liveCampaigns(now);
 
     return items.map((item) => ({
       id: item.id,
@@ -28,7 +36,14 @@ export class CartService {
       productImage: item.variant.product.images[0]?.url ?? null,
       color: item.variant.color,
       size: item.variant.size,
-      price: item.variant.priceInPaisa,
+      price: effectiveUnitPrice({
+        priceInPaisa: item.variant.priceInPaisa,
+        compareAtPrice: item.variant.compareAtPrice,
+        productId: item.variant.productId,
+        categoryId: item.variant.product.categoryId,
+        campaigns,
+        now,
+      }).price,
       quantity: item.quantity,
       stock: item.variant.stock,
     }));

@@ -19,6 +19,7 @@ export type ProductVariantRef = {
   color: string;
   size: string;
   price: number;
+  compareAtPrice?: number;
   stock: number;
 };
 

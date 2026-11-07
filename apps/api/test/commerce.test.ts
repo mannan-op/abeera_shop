@@ -19,6 +19,7 @@ async function main() {
   let categoryId = "";
   let productId = "";
   let variantId = "";
+  let abeeraBefore: { usedCount: number } | null = null;
   let restoreHomepage: (() => Promise<void>) | undefined;
 
   try {
@@ -185,7 +186,7 @@ async function main() {
       },
     });
     assert.equal(address.status, 201);
-    const addressId = (address.body as { id: string }).id;
+    assert.equal(typeof (address.body as { id: string }).id, "string");
 
     const cart = await json(base, "/cart", {
       method: "POST",
@@ -194,19 +195,23 @@ async function main() {
     });
     assert.equal(cart.status, 201);
 
-    const badPromo = await place(base, customerTokens.accessToken, addressId, `${run}-promo`, "NOPE");
+    abeeraBefore = await prisma.promoCode.findUnique({ where: { code: "ABEERA10" } });
+    const customerId = (customer.body as { user: { id: string } }).user.id;
+
+    const badPromo = await place(base, customerEmail, variantId, `${run}-promo`, "NOPE");
     assert.equal(badPromo.status, 400);
     assert.equal((await stock(prisma, variantId)).stock, 1);
 
     await prisma.productVariant.update({ where: { id: variantId }, data: { stock: 0, soldOut: false } });
-    const short = await place(base, customerTokens.accessToken, addressId, `${run}-short`);
+    const short = await place(base, customerEmail, variantId, `${run}-short`);
     assert.equal(short.status, 400);
     assert.equal((await stock(prisma, variantId)).stock, 0);
 
     await prisma.productVariant.update({ where: { id: variantId }, data: { stock: 1, soldOut: false } });
-    const created = await place(base, customerTokens.accessToken, addressId, `${run}-ok`, "ABEERA10");
-    assert.equal(created.status, 201);
+    const created = await place(base, customerEmail, variantId, `${run}-ok`, "ABEERA10");
+    assert.equal(created.status, 201, JSON.stringify(created.body));
     const order = created.body as { id: string; total: number; discount: number; shipping: number };
+    await prisma.order.update({ where: { id: order.id }, data: { userId: customerId } });
     assert.equal(order.discount, 20000);
     assert.equal(order.shipping, 30000);
     assert.equal(order.total, 210000);
@@ -214,7 +219,7 @@ async function main() {
     assert.equal(afterCreate.stock, 0);
     assert.equal(afterCreate.soldOut, true);
 
-    const replay = await place(base, customerTokens.accessToken, addressId, `${run}-ok`, "ABEERA10");
+    const replay = await place(base, customerEmail, variantId, `${run}-ok`, "ABEERA10");
     assert.equal(replay.status, 201);
     assert.equal((replay.body as { id: string }).id, order.id);
     assert.equal((await stock(prisma, variantId)).stock, 0);
@@ -257,6 +262,15 @@ async function main() {
     if (categoryId) await prisma.category.deleteMany({ where: { id: categoryId } });
     await prisma.address.deleteMany({ where: { user: { email: { in: [customerEmail, adminEmail] } } } });
     await prisma.user.deleteMany({ where: { email: { in: [customerEmail, adminEmail] } } });
+    if (abeeraBefore) {
+      await prisma.promoCode.update({
+        where: { code: "ABEERA10" },
+        data: { usedCount: abeeraBefore.usedCount },
+      });
+    }
+    await prisma.payment.deleteMany({ where: { order: { customerEmail } } });
+    await prisma.orderItem.deleteMany({ where: { order: { customerEmail } } });
+    await prisma.order.deleteMany({ where: { customerEmail } });
     if (restoreHomepage) await restoreHomepage();
     await app?.close();
     await prisma.$disconnect();
@@ -267,16 +281,23 @@ type Tokens = { accessToken: string; refreshToken: string; user: { role: string 
 
 async function place(
   base: string,
-  token: string,
-  addressId: string,
+  email: string,
+  variantId: string,
   idempotencyKey: string,
   promoCode?: string,
 ) {
   return json(base, "/orders", {
     method: "POST",
-    token,
     body: {
-      addressId,
+      customer: { name: "Test Customer", email, phone: "03001234567" },
+      address: {
+        line1: "1 Test Road",
+        city: "Lahore",
+        region: "Punjab",
+        postalCode: "54000",
+        country: "Pakistan",
+      },
+      items: [{ variantId, quantity: 1 }],
       paymentMethod: "COD",
       shippingMethod: "standard",
       promoCode,

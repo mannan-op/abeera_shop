@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
+import { SaleBanner } from "@/components/layout/sale-banner";
 import { Footer } from "@/components/layout/footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Navbar } from "@/components/layout/navbar";
@@ -33,12 +34,14 @@ export function SiteShell({
   sampleCatalog = false,
   settings,
   whatsapp,
+  saleBanner,
 }: {
   children: React.ReactNode;
   categories?: Category[] | null;
   sampleCatalog?: boolean;
   settings: SiteSettings;
   whatsapp: string;
+  saleBanner?: string | null;
 }) {
   const pathname = usePathname();
   const home = pathname === "/";
@@ -54,6 +57,7 @@ export function SiteShell({
     <div className="flex min-h-screen flex-col">
       {sampleCatalog ? <SampleCatalogNotice /> : null}
       {settings.announcement.enabled ? <AnnouncementBar messages={settings.announcement.messages} /> : null}
+      {saleBanner ? <SaleBanner text={saleBanner} /> : null}
       <Navbar overlay={home} />
       <main className="flex-1">{children}</main>
       <Footer footer={settings.footer} store={settings.store} />

@@ -14,11 +14,6 @@ export const SHIPPING_METHODS = {
 
 export type ShippingMethodId = keyof typeof SHIPPING_METHODS;
 
-/** Percent off subtotal. Unknown codes are rejected by quoteTotals. */
-export const PROMO_CODES: Record<string, number> = {
-  ABEERA10: 10,
-};
-
 export const JWT_ACCESS_EXPIRY = "15m";
 export const JWT_REFRESH_EXPIRY = "7d";
 

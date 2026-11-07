@@ -94,6 +94,7 @@ export function ShopProductCard({ product, priority = false }: { product: Produc
         <p className="mt-1 text-[12.5px] font-semibold tracking-[0.01em] text-[#2b211c]">
           {off > 0 ? (
             <>
+              <span className="mr-1.5 text-[10px] font-medium tracking-[0.14em] text-[#8b3a2e] uppercase">Sale</span>
               <s className="mr-1.5 font-normal text-muted-foreground">Rs.{formatPriceAmount(compare)}</s>
               <span className="text-[#8b3a2e]">Rs.{formatPriceAmount(product.price)}</span>
             </>

@@ -36,6 +36,9 @@ export function ProductPurchase({ product }: { product: Product }) {
   const whatsappDigits = useWhatsAppDigits();
   const router = useRouter();
   const wished = isWishlisted(product.id);
+  const selected = product.variants?.find((entry) => entry.color === color && entry.size === size);
+  const price = selected?.price ?? product.price;
+  const compareAt = selected?.compareAtPrice ?? (selected ? undefined : product.compareAtPrice);
   const helpHref = whatsAppHref(product.name, whatsappDigits);
   const externalHelp = helpHref.startsWith("http");
 
@@ -63,13 +66,20 @@ export function ProductPurchase({ product }: { product: Product }) {
         </div>
       </div>
       <div>
-        <p className="kicker">{product.isNew ? "New arrival" : product.category.replace(/-/g, " ")}</p>
+        <p className="kicker flex items-center gap-2">
+          <span>{product.isNew ? "New arrival" : product.category.replace(/-/g, " ")}</span>
+          {compareAt ? (
+            <span className="rounded-full bg-[#f3e6c8] px-2 py-0.5 text-[10px] tracking-[0.14em] text-[#6b5326] uppercase">
+              Sale
+            </span>
+          ) : null}
+        </p>
         <h1 className="mt-3 font-serif text-4xl leading-[1.05] md:text-5xl">{product.name}</h1>
         <p className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <span className="text-sm tracking-[0.08em] text-foreground">PKR</span>
-          <span className="font-serif text-4xl leading-none text-primary">{formatPriceAmount(product.price)}</span>
-          {product.compareAtPrice ? (
-            <span className="text-sm text-muted-foreground line-through">{formatPrice(product.compareAtPrice)}</span>
+          <span className="font-serif text-4xl leading-none text-primary">{formatPriceAmount(price)}</span>
+          {compareAt ? (
+            <span className="text-sm text-muted-foreground line-through">{formatPrice(compareAt)}</span>
           ) : null}
         </p>
         <p className="mt-3 text-sm text-muted-foreground">

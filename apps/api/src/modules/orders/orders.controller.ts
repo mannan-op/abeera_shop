@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, Get, HttpCode, Param, Post, Query } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
-import { guestOrderSchema, orderLookupSchema } from "@abeera/shared";
+import { guestOrderSchema, orderLookupSchema, orderQuoteSchema } from "@abeera/shared";
 
 import { OrdersService } from "./orders.service";
 import { CurrentUser, Public } from "../../common/decorators";
@@ -8,6 +8,19 @@ import { CurrentUser, Public } from "../../common/decorators";
 @Controller("orders")
 export class OrdersController {
   constructor(private orders: OrdersService) {}
+
+  /** Totals from the database: campaign prices, promo rules, and shipping. */
+  @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
+  @HttpCode(200)
+  @Post("quote")
+  quote(@Body() body: unknown) {
+    const parsed = orderQuoteSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.issues[0]?.message ?? "Invalid quote");
+    }
+    return this.orders.quote(parsed.data);
+  }
 
   /** Guest checkout. No account needed. */
   @Public()

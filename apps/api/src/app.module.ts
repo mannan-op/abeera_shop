@@ -19,6 +19,7 @@ import { SiteModule } from "./modules/site/site.module";
 import { CustomersModule } from "./modules/customers/customers.module";
 import { MailModule } from "./modules/mail/mail.module";
 import { ReviewsModule } from "./modules/reviews/reviews.module";
+import { SalesModule } from "./modules/sales/sales.module";
 import { HealthController, RootHealthController } from "./health.controller";
 
 @Module({
@@ -39,6 +40,7 @@ import { HealthController, RootHealthController } from "./health.controller";
     SiteModule,
     CustomersModule,
     ReviewsModule,
+    SalesModule,
     MailModule,
     AdminModule,
   ],

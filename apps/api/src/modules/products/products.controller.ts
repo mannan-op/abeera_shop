@@ -42,8 +42,8 @@ export class ProductsController {
 
   @Public()
   @Get("by-id/:id")
-  findById(@Param("id") id: string) {
-    return this.products.findById(id);
+  findById(@Param("id") id: string, @Query("view") view?: string) {
+    return this.products.findById(id, view === "shop");
   }
 
   @Public()
